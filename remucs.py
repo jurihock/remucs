@@ -11,7 +11,7 @@ import tqdm
 REMUCS = '.remucs'
 INPUT  = 'input'
 OUTPUT = 'output'
-STEMS  = ['drums', 'bass', 'other', 'vocals']
+STEMS  = ['bass', 'drums', 'other', 'vocals']
 
 def analyze(stems, suffix, model):
 
@@ -66,7 +66,7 @@ def synthesize(stems, suffix, gains, pans, mono):
         return list(map(str_or_path, args))
 
     sox = ['sox', '-m']
-    src = [stems / (stem + suffix) for stem in STEMS]
+    src = [stems / (stem + suffix) for stem in sorted(STEMS)]
     dst = [stems / (OUTPUT + suffix)]
 
     src = interlace(['-v']*len(STEMS), gains, src)
