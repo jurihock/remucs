@@ -1,0 +1,13 @@
+.*/
+!.github/
+
+dist/
+*.egg-info/
+
+__pycache__/
+*.py[cod]
+
+.DS_Store
+Thumbs.db
+
+*.wav
