@@ -109,7 +109,10 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     name   = file.stem
     suffix = file.suffix
 
-    stems = pathlib.Path(data).expanduser() / REMUCS / name
+    data = pathlib.Path(data).expanduser()
+    assert data.is_dir()
+
+    stems = data / REMUCS / name
     stems.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, stems / (INPUT + suffix))
 
