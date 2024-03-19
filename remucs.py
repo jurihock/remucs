@@ -1,6 +1,5 @@
 import click
 import demucs.api
-import math
 import numpy
 import pathlib
 import shutil
@@ -12,7 +11,7 @@ INPUT  = 'input'
 OUTPUT = 'output'
 STEMS  = ['bass', 'drums', 'other', 'vocals']
 
-def analyze(stems, suffix, model):
+def analyze(stems, suffix, *, model='htdemucs'):
 
     def callback(args):
 
@@ -28,12 +27,15 @@ def analyze(stems, suffix, model):
             y = length * models
             x = length * model + offset
 
-            n = min(max(math.ceil(100 * x / y), 0), 100)
-            m = min(max(n - prog.n, 0), 100 - prog.n)
+            n = numpy.clip(numpy.ceil(100 * x / y), 0, 100)
+            m = numpy.clip(n - prog.n, 0, 100 - prog.n)
 
             prog.update(m)
 
     with tqdm.tqdm(total=100) as progress:
+
+        model = model.lower()
+        assert model in ['htdemucs', 'htdemucs_ft']
 
         src = stems / (INPUT + suffix)
 
@@ -56,10 +58,26 @@ def analyze(stems, suffix, model):
             dst = stems / (stem + suffix)
             demucs.api.save_audio(data, dst, samplerate=separator.samplerate)
 
-def synthesize(stems, suffix, gains, pans, mono):
+def synthesize(stems, suffix, *, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS)):
 
     src = [stems / (stem + suffix) for stem in sorted(STEMS)]
     dst = stems / (OUTPUT + suffix)
+
+    balance = numpy.atleast_1d(balance).ravel()
+    gain    = numpy.atleast_1d(gain).ravel()
+
+    b, nb = numpy.zeros(len(STEMS)), min(len(STEMS), len(balance))
+    g, ng = numpy.ones(len(STEMS)),  min(len(STEMS), len(gain))
+
+    b[:nb] = balance[:nb]
+    g[:ng] = gain[:ng]
+
+    b = numpy.repeat(b[..., None, None], 2, axis=-1)
+    b[..., 0] = numpy.clip(1 - b[..., 0], 0, 1)
+    b[..., 1] = numpy.clip(1 + b[..., 1], 0, 1)
+
+    g = g[..., None, None]
+    g = numpy.clip(g, 0, 1)
 
     x = [soundfile.read(stem) for stem in src]
     x, sr = zip(*x)
@@ -69,33 +87,51 @@ def synthesize(stems, suffix, gains, pans, mono):
     x = numpy.array(x)
     assert x.ndim == 3 and x.shape[-1] == 2
 
-    x *= numpy.reshape(gains, (-1, 1, 1))
-    y = numpy.sum(x, axis=0)
+    if mono:
+        x = numpy.mean(x, axis=-1)
+        x = numpy.repeat(x[..., None], 2, axis=-1)
+
+    y = x * b * g
+    y = numpy.sum(y, axis=0)
     y = numpy.clip(y, -1, +1)
 
     soundfile.write(dst, y, sr)
 
-if __name__ == '__main__':
+def remucs(file, *, fine=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data=None):
 
-    model = 'htdemucs' # + '_ft'
-    force = False
+    model = 'htdemucs_ft' if fine else 'htdemucs'
+    overwrite = False
 
-    gains = [1]*len(STEMS)
-    pans  = [0]*len(STEMS)
-    mono  = False
-
-    file   = pathlib.Path('./test.wav')
     name   = file.stem
     suffix = file.suffix
 
-    stems = pathlib.Path().cwd() / REMUCS / name
+    stems = (data or pathlib.Path().cwd()) / REMUCS / name
     stems.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, stems / (INPUT + suffix))
 
     has_all_stems = list(set((stems / (stem + suffix)).exists() for stem in STEMS))
     has_all_stems = has_all_stems[0] if len(has_all_stems) == 1 else False
 
-    if force or not has_all_stems:
-        analyze(stems, suffix, model)
+    if overwrite or not has_all_stems:
+        analyze(stems, suffix, model=model)
 
-    synthesize(stems, suffix, gains, pans, mono)
+    synthesize(stems, suffix, mono=mono, balance=balance, gain=gain)
+
+if __name__ == '__main__':
+
+    @click.command(context_settings=dict(help_option_names=['-h', '--help']))
+    @click.argument('files', nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
+    @click.option('-f', '--fine', default=False, is_flag=True, help='Use fine-tuned "htdemucs_ft" model.')
+    @click.option('-m', '--mono', default=False, is_flag=True, help='Convert stereo source to mono.')
+    @click.option('-b', '--balance', default='0,0,0,0', show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
+    @click.option('-g', '--gain', default='1,1,1,1', show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
+    @click.option('-d', '--data', default=pathlib.Path().cwd(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
+    def cli(files, fine, mono, balance, gain, data):
+
+        balance = [float(_) for _ in balance.split(',')]
+        gain    = [float(_) for _ in gain.split(',')]
+
+        for file in list(set(files)):
+            remucs(file, fine=fine, mono=mono, balance=balance, gain=gain, data=data)
+
+    cli()
