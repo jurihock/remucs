@@ -23,13 +23,15 @@ def analyze(stems, suffix, model):
         state  = args['state']
         prog   = args['progress']
 
-        if state.lower() == 'start':
+        if state.lower() == 'start' and prog is not None:
 
             y = length * models
             x = length * model + offset
-            n = min(max(math.ceil(100 * x / y), 0), 100)
 
-            prog.update(n - prog.n)
+            n = min(max(math.ceil(100 * x / y), 0), 100)
+            m = min(max(n - prog.n, 0), 100 - prog.n)
+
+            prog.update(m)
 
     with tqdm.tqdm(total=100) as progress:
 
