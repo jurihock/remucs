@@ -1,0 +1,8 @@
+# install the bleeding edge version of demucs
+-e git+https://github.com/adefossez/demucs#egg=demucs
+
+# install some additional packages
+click
+numpy
+soundfile
+tqdm
