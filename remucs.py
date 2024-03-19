@@ -101,7 +101,7 @@ def synthesize(stems, suffix, *, norm=False, mono=False, balance=[0]*len(STEMS),
 
     soundfile.write(dst, y, sr)
 
-def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data=None):
+def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~'):
 
     model = MODELS[fine]
     overwrite = False
@@ -109,7 +109,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     name   = file.stem
     suffix = file.suffix
 
-    stems = (data or pathlib.Path().cwd()) / REMUCS / name
+    stems = pathlib.Path(data).expanduser() / REMUCS / name
     stems.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, stems / (INPUT + suffix))
 
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     @click.option('-m', '--mono', default=False, is_flag=True, help='Convert stereo source to mono.')
     @click.option('-b', '--balance', default=','.join(["0"]*len(STEMS)), show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-g', '--gain', default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
-    @click.option('-d', '--data', default=pathlib.Path().cwd(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
+    @click.option('-d', '--data', default=pathlib.Path().home(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
     def cli(files, fine, norm, mono, balance, gain, data):
 
         balance = [float(_) for _ in balance.split(',')]
