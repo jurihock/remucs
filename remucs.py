@@ -157,7 +157,7 @@ if __name__ == '__main__':
     @click.option('-b', '--balance', default=','.join(["0"]*len(STEMS)), show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-g', '--gain',    default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-d', '--data',    default=pathlib.Path().home(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
-    @click.option('-q', '--quiet',   default=False, is_flag=True, help='Don\'t trashing stdout.')
+    @click.option('-q', '--quiet',   default=False, is_flag=True, help='Don\'t trash stdout.')
     def cli(files, fine, norm, mono, balance, gain, data, quiet):
 
         try:
