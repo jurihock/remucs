@@ -1,11 +1,10 @@
 import click
 import demucs.api
-import itertools
 import math
-import os
+import numpy
 import pathlib
 import shutil
-import subprocess
+import soundfile
 import tqdm
 
 REMUCS = '.remucs'
@@ -57,29 +56,30 @@ def analyze(stems, suffix, model):
 
 def synthesize(stems, suffix, gains, pans, mono):
 
-    def interlace(*args):
-        return list(itertools.chain(*zip(*args)))
-
-    def stringify(args):
-        def str_or_path(arg):
-            return arg if isinstance(arg, pathlib.PurePath) else str(arg)
-        return list(map(str_or_path, args))
-
-    sox = ['sox', '-m']
     src = [stems / (stem + suffix) for stem in sorted(STEMS)]
-    dst = [stems / (OUTPUT + suffix)]
+    dst = stems / (OUTPUT + suffix)
 
-    src = interlace(['-v']*len(STEMS), gains, src)
+    x = [soundfile.read(stem) for stem in src]
+    x, sr = zip(*x)
 
-    subprocess.run(stringify(sox + src + dst), cwd=stems)
+    assert len(list(set(sr))) == 1
+    sr = sr[0]
+    x = numpy.array(x)
+    assert x.ndim == 3 and x.shape[-1] == 2
+
+    x *= numpy.reshape(gains, (-1, 1, 1))
+    y = numpy.sum(x, axis=0)
+    y = numpy.clip(y, -1, +1)
+
+    soundfile.write(dst, y, sr)
 
 if __name__ == '__main__':
 
     model = 'htdemucs' # + '_ft'
     force = False
 
-    gains = [1]*4
-    pans  = [0]*4
+    gains = [1]*len(STEMS)
+    pans  = [0]*len(STEMS)
     mono  = False
 
     file   = pathlib.Path('./test.wav')
