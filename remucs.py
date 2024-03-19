@@ -9,6 +9,7 @@ import tqdm
 REMUCS = '.remucs'
 INPUT  = 'input'
 OUTPUT = 'output'
+MODELS = ['htdemucs', 'htdemucs_ft']
 STEMS  = ['bass', 'drums', 'other', 'vocals']
 
 def analyze(stems, suffix, *, model='htdemucs'):
@@ -35,7 +36,7 @@ def analyze(stems, suffix, *, model='htdemucs'):
     with tqdm.tqdm(total=100) as progress:
 
         model = model.lower()
-        assert model in ['htdemucs', 'htdemucs_ft']
+        assert model in MODELS
 
         src = stems / (INPUT + suffix)
 
@@ -99,7 +100,7 @@ def synthesize(stems, suffix, *, mono=False, balance=[0]*len(STEMS), gain=[1]*le
 
 def remucs(file, *, fine=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data=None):
 
-    model = 'htdemucs_ft' if fine else 'htdemucs'
+    model = MODELS[fine]
     overwrite = False
 
     name   = file.stem
