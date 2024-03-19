@@ -12,7 +12,7 @@ OUTPUT = 'output'
 MODELS = ['htdemucs', 'htdemucs_ft']
 STEMS  = ['bass', 'drums', 'other', 'vocals']
 
-def analyze(stems, suffix, *, model='htdemucs'):
+def analyze(stems, suffix, *, model=MODELS[0]):
 
     def callback(args):
 
@@ -122,10 +122,10 @@ if __name__ == '__main__':
 
     @click.command(context_settings=dict(help_option_names=['-h', '--help']))
     @click.argument('files', nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
-    @click.option('-f', '--fine', default=False, is_flag=True, help='Use fine-tuned "htdemucs_ft" model.')
+    @click.option('-f', '--fine', default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
     @click.option('-m', '--mono', default=False, is_flag=True, help='Convert stereo source to mono.')
-    @click.option('-b', '--balance', default='0,0,0,0', show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
-    @click.option('-g', '--gain', default='1,1,1,1', show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
+    @click.option('-b', '--balance', default=','.join(["0"]*len(STEMS)), show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
+    @click.option('-g', '--gain', default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-d', '--data', default=pathlib.Path().cwd(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
     def cli(files, fine, mono, balance, gain, data):
 
