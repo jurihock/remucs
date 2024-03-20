@@ -121,7 +121,7 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
     g[:ng] = gain[:ng]
 
     b = numpy.clip(b[..., None, None] * [-1, +1] + 1, 0, 1)
-    g = numpy.clip(g[..., None, None], 0, 1)
+    g = numpy.clip(g[..., None, None], -10, +10)
 
     x = [soundfile.read(stem) for stem in src]
     x, sr = zip(*x)
