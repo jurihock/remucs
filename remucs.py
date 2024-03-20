@@ -177,7 +177,7 @@ if __name__ == '__main__':
     @click.command(context_settings=dict(help_option_names=['-h', '--help']))
     @click.argument('files',       nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
     @click.option('-f', '--fine',  default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
-    @click.option('-n', '--norm',  default=False, is_flag=True, help='Normalize output.')
+    @click.option('-n', '--norm',  default=False, is_flag=True, help='Normalize output amplitude.')
     @click.option('-m', '--mono',  default=False, is_flag=True, help='Convert stereo input to mono.')
     @click.option('-b', '--bala',  default=','.join(["0"]*len(STEMS)), show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-g', '--gain',  default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')

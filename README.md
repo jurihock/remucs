@@ -13,7 +13,7 @@ Usage: remucs.py [OPTIONS] FILES...
 
 Options:
   -f, --fine            Use fine-tuned "htdemucs_ft" model.
-  -n, --norm            Normalize output.
+  -n, --norm            Normalize output amplitude.
   -m, --mono            Convert stereo input to mono.
   -b, --bala TEXT       Balance of individual stems [bass,drums,other,vocals].
                         [default: 0,0,0,0]
