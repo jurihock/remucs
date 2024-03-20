@@ -2,6 +2,7 @@ import click
 import demucs.api
 import hashlib
 import numpy
+import os
 import pathlib
 import soundfile
 import tqdm
@@ -54,10 +55,10 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
 
         check.unlink(missing_ok=True)
 
-        for stem in data.glob('**/*' + suffix):
+        for stem in data.glob(os.path.join('**', '*') + suffix):
 
             if not quiet:
-                click.echo(f'Removing {stem.resolve()}')
+                click.echo(f'Dropping {stem.resolve()}')
 
             stem.unlink()
 
