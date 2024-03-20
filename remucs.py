@@ -73,7 +73,7 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
     if not quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
-    progress = tqdm.tqdm(total=100) if not quiet else None
+    progress  = tqdm.tqdm(total=100) if not quiet else None
     separator = demucs.api.Separator(model=model, callback=callback, callback_arg=dict(progress=progress))
 
     # WORKAROUND
@@ -123,12 +123,11 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
     b = numpy.clip(b[..., None, None] * [-1, +1] + 1, 0, 1)
     g = numpy.clip(g[..., None, None], -10, +10)
 
-    x = [soundfile.read(stem) for stem in src]
-    x, sr = zip(*x)
+    x, sr = zip(*[soundfile.read(stem) for stem in src])
 
     assert len(list(set(sr))) == 1
     sr = sr[0]
-    x = numpy.array(x)
+    x  = numpy.array(x)
     assert x.ndim == 3 and x.shape[-1] == 2
 
     if not quiet:
