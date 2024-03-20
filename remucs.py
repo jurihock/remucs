@@ -13,7 +13,7 @@ OUTPUT = 'output'
 MODELS = ['htdemucs', 'htdemucs_ft']
 STEMS  = ['bass', 'drums', 'other', 'vocals']
 
-def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
+def analyze(data, suffix, *, model=MODELS[0], quiet=False):
 
     def callback(args):
 
@@ -34,10 +34,16 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
 
             prog.update(m)
 
-    src = stems / (INPUT + suffix)
+    src = data / (INPUT + suffix)
 
     model = model.lower()
     assert model in MODELS
+
+    complete = list(set((data / model / (stem + suffix)).exists() for stem in STEMS))
+    complete = complete[0] if len(complete) == 1 else False
+
+    if complete:
+        return
 
     if not quiet:
         click.echo(f'Analyzing {src.resolve()}')
@@ -64,7 +70,7 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
 
     for stem, samples in separated.items():
 
-        dst = stems / model / (stem + suffix)
+        dst = data / model / (stem + suffix)
 
         if not quiet:
             click.echo(f'Writing {dst.resolve()}')
@@ -72,10 +78,10 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
         dst.parent.mkdir(parents=True, exist_ok=True)
         demucs.api.save_audio(samples, dst, samplerate=separator.samplerate)
 
-def synthesize(stems, suffix, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
+def synthesize(data, suffix, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
-    src = [stems / model / (stem + suffix) for stem in sorted(STEMS)]
-    dst = stems / (OUTPUT + suffix)
+    src = [data / model / (stem + suffix) for stem in sorted(STEMS)]
+    dst = data / (OUTPUT + suffix)
 
     if not quiet:
         click.echo(f'Synthesizing {dst.resolve()}')
@@ -136,17 +142,12 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     data = pathlib.Path(data).expanduser()
     assert data.is_dir()
 
-    stems = data / REMUCS / name
-    stems.mkdir(parents=True, exist_ok=True)
-    shutil.copy(file, stems / (INPUT + suffix))
+    data = data / REMUCS / name
+    data.mkdir(parents=True, exist_ok=True)
+    shutil.copy(file, data / (INPUT + suffix))
 
-    has_all_stems = list(set((stems / model / (stem + suffix)).exists() for stem in STEMS))
-    has_all_stems = has_all_stems[0] if len(has_all_stems) == 1 else False
-
-    if not has_all_stems:
-        analyze(stems, suffix, model=model, quiet=quiet)
-
-    synthesize(stems, suffix, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
+    analyze(data, suffix, model=model, quiet=quiet)
+    synthesize(data, suffix, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
 if __name__ == '__main__':
 
