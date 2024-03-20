@@ -11,13 +11,13 @@ Usage: remucs.py [OPTIONS] FILES...
 Options:
   -f, --fine            Use fine-tuned "htdemucs_ft" model.
   -n, --norm            Normalize output.
-  -m, --mono            Convert stereo source to mono.
+  -m, --mono            Convert stereo input to mono.
   -b, --balance TEXT    Balance of individual stems [bass,drums,other,vocals].
                         [default: 0,0,0,0]
   -g, --gain TEXT       Gain of individual stems [bass,drums,other,vocals].
                         [default: 1,1,1,1]
   -d, --data DIRECTORY  Directory where to store intermediate files.
-                        [default: <user home directory>]
+                        [default: <user’s home directory>]
   -q, --quiet           Don't trash stdout.
   -h, --help            Show this message and exit.
 ```

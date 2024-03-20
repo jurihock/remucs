@@ -1,19 +1,23 @@
 import click
 import demucs.api
+import hashlib
 import numpy
 import pathlib
-import shutil
 import soundfile
 import tqdm
 import traceback
 
 REMUCS = '.remucs'
-INPUT  = 'input'
-OUTPUT = 'output'
+DIGEST = 'sha256'
 MODELS = ['htdemucs', 'htdemucs_ft']
 STEMS  = ['bass', 'drums', 'other', 'vocals']
 
-def analyze(data, suffix, *, model=MODELS[0], quiet=False):
+def checksum(file, digest):
+
+    with open(file, 'rb') as stream:
+        return hashlib.file_digest(stream, digest).hexdigest()
+
+def analyze(file, data, *, model=MODELS[0], quiet=False):
 
     def callback(args):
 
@@ -34,10 +38,30 @@ def analyze(data, suffix, *, model=MODELS[0], quiet=False):
 
             prog.update(m)
 
-    src = data / (INPUT + suffix)
+    suffix = file.suffix
+
+    src = file
+    dst = {stem: data / model / (stem + suffix) for stem in STEMS}
 
     model = model.lower()
     assert model in MODELS
+
+    check = data / (DIGEST + suffix)
+    hash0 = check.read_text().strip() if check.exists() else None
+    hash1 = checksum(src, DIGEST).strip()
+
+    if hash0 != hash1:
+
+        check.unlink(missing_ok=True)
+
+        for stem in data.glob('**/*' + suffix):
+
+            if not quiet:
+                click.echo(f'Removing {stem.resolve()}')
+
+            stem.unlink()
+
+        check.write_text(hash1)
 
     complete = list(set((data / model / (stem + suffix)).exists() for stem in STEMS))
     complete = complete[0] if len(complete) == 1 else False
@@ -70,18 +94,18 @@ def analyze(data, suffix, *, model=MODELS[0], quiet=False):
 
     for stem, samples in separated.items():
 
-        dst = data / model / (stem + suffix)
-
         if not quiet:
-            click.echo(f'Writing {dst.resolve()}')
+            click.echo(f'Writing {dst[stem].resolve()}')
 
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        demucs.api.save_audio(samples, dst, samplerate=separator.samplerate)
+        dst[stem].parent.mkdir(parents=True, exist_ok=True)
+        demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
 
-def synthesize(data, suffix, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
+def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
+
+    suffix = file.suffix
 
     src = [data / model / (stem + suffix) for stem in sorted(STEMS)]
-    dst = data / (OUTPUT + suffix)
+    dst = file
 
     if not quiet:
         click.echo(f'Synthesizing {dst.resolve()}')
@@ -134,20 +158,19 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     if not quiet:
         click.echo(f'Processing {file.resolve()}')
 
-    model = MODELS[fine]
-
-    name   = file.stem
-    suffix = file.suffix
-
     data = pathlib.Path(data).expanduser()
     assert data.is_dir()
 
-    data = data / REMUCS / name
+    data = data / REMUCS / file.stem
     data.mkdir(parents=True, exist_ok=True)
-    shutil.copy(file, data / (INPUT + suffix))
 
-    analyze(data, suffix, model=model, quiet=quiet)
-    synthesize(data, suffix, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
+    src = file
+    dst = file.with_suffix(REMUCS + file.suffix)
+
+    model = MODELS[fine]
+
+    analyze(src, data, model=model, quiet=quiet)
+    synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
 if __name__ == '__main__':
 
@@ -155,7 +178,7 @@ if __name__ == '__main__':
     @click.argument('files',         nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
     @click.option('-f', '--fine',    default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
     @click.option('-n', '--norm',    default=False, is_flag=True, help='Normalize output.')
-    @click.option('-m', '--mono',    default=False, is_flag=True, help='Convert stereo source to mono.')
+    @click.option('-m', '--mono',    default=False, is_flag=True, help='Convert stereo input to mono.')
     @click.option('-b', '--balance', default=','.join(["0"]*len(STEMS)), show_default=True, help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-g', '--gain',    default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
     @click.option('-d', '--data',    default=pathlib.Path().home(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
