@@ -63,12 +63,18 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
     assert obtained_stems == expected_stems
 
     for stem, data in separated.items():
-        dst = stems / (stem + suffix)
+
+        dst = stems / model / (stem + suffix)
+
+        if not quiet:
+            click.echo(f'Writing {dst.resolve()}')
+
+        dst.parent.mkdir(parents=True, exist_ok=True)
         demucs.api.save_audio(data, dst, samplerate=separator.samplerate)
 
-def synthesize(stems, suffix, *, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
+def synthesize(stems, suffix, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
-    src = [stems / (stem + suffix) for stem in sorted(STEMS)]
+    src = [stems / model / (stem + suffix) for stem in sorted(STEMS)]
     dst = stems / (OUTPUT + suffix)
 
     if not quiet:
@@ -123,7 +129,6 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
         click.echo(f'Processing {file.resolve()}')
 
     model = MODELS[fine]
-    overwrite = False
 
     name   = file.stem
     suffix = file.suffix
@@ -135,13 +140,13 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     stems.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, stems / (INPUT + suffix))
 
-    has_all_stems = list(set((stems / (stem + suffix)).exists() for stem in STEMS))
+    has_all_stems = list(set((stems / model / (stem + suffix)).exists() for stem in STEMS))
     has_all_stems = has_all_stems[0] if len(has_all_stems) == 1 else False
 
-    if overwrite or not has_all_stems:
+    if not has_all_stems:
         analyze(stems, suffix, model=model, quiet=quiet)
 
-    synthesize(stems, suffix, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
+    synthesize(stems, suffix, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
 if __name__ == '__main__':
 
