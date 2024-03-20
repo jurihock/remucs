@@ -83,12 +83,8 @@ def synthesize(stems, suffix, *, norm=False, mono=False, balance=[0]*len(STEMS),
     b[:nb] = balance[:nb]
     g[:ng] = gain[:ng]
 
-    b = numpy.repeat(b[..., None, None], 2, axis=-1)
-    b[..., 0] = numpy.clip(1 - b[..., 0], 0, 1)
-    b[..., 1] = numpy.clip(1 + b[..., 1], 0, 1)
-
-    g = g[..., None, None]
-    g = numpy.clip(g, 0, 1)
+    b = numpy.clip(b[..., None, None] * [-1, +1] + 1, 0, 1)
+    g = numpy.clip(g[..., None, None], 0, 1)
 
     x = [soundfile.read(stem) for stem in src]
     x, sr = zip(*x)
