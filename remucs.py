@@ -62,7 +62,7 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
     expected_stems = sorted(STEMS)
     assert obtained_stems == expected_stems
 
-    for stem, data in separated.items():
+    for stem, samples in separated.items():
 
         dst = stems / model / (stem + suffix)
 
@@ -70,7 +70,7 @@ def analyze(stems, suffix, *, model=MODELS[0], quiet=False):
             click.echo(f'Writing {dst.resolve()}')
 
         dst.parent.mkdir(parents=True, exist_ok=True)
-        demucs.api.save_audio(data, dst, samplerate=separator.samplerate)
+        demucs.api.save_audio(samples, dst, samplerate=separator.samplerate)
 
 def synthesize(stems, suffix, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
