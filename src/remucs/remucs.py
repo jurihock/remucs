@@ -153,13 +153,16 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
 
     soundfile.write(dst, y, sr)
 
-def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~', quiet=False):
+def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~', quiet=True):
 
-    if not quiet:
-        click.echo(f'Processing {file.resolve()}')
+    file = pathlib.Path(file)
+    assert data.is_file()
 
     data = pathlib.Path(data).expanduser()
     assert data.is_dir()
+
+    if not quiet:
+        click.echo(f'Processing {file.resolve()}')
 
     data = data / REMUCS / file.stem
     data.mkdir(parents=True, exist_ok=True)
