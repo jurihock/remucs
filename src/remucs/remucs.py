@@ -1,3 +1,5 @@
+__version__ = '0.0.4'
+
 import click
 import demucs.api
 import hashlib
@@ -176,6 +178,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.version_option(version=__version__, message='%(version)s')
 @click.argument('files',       nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
 @click.option('-f', '--fine',  default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
 @click.option('-n', '--norm',  default=False, is_flag=True, help='Normalize output amplitude.')
