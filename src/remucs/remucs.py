@@ -156,7 +156,7 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
 def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~', quiet=True):
 
     file = pathlib.Path(file)
-    assert data.is_file()
+    assert file.is_file()
 
     data = pathlib.Path(data).expanduser()
     assert data.is_dir()
