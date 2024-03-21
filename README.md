@@ -9,10 +9,10 @@ Since the stem extraction is based on the [demucs](https://github.com/adefossez/
 ## Usage
 
 ```
-Usage: remucs.py [OPTIONS] FILES...
+Usage: remucs [OPTIONS] FILES...
 
 Options:
-  -f, --fine            Use fine-tuned "htdemucs_ft" model.
+  -f, --fine            Use fine-tuned “htdemucs_ft” model.
   -n, --norm            Normalize output amplitude.
   -m, --mono            Convert stereo input to mono.
   -b, --bala TEXT       Balance of individual stems [bass,drums,other,vocals].
@@ -24,6 +24,19 @@ Options:
   -q, --quiet           Don't trash stdout.
   -h, --help            Show this message and exit.
 ```
+
+## Install
+
+```
+pip install -U git+https://github.com/jurihock/remucs#egg=remucs
+```
+
+Remarks:
+
+* Remucs is not compatible with the version _4.0.1_ of [facebookresearch/demucs](https://github.com/facebookresearch/demucs), as published on [pypi](https://pypi.org/project/demucs).
+* The required [adefossez/demucs](https://github.com/adefossez/demucs) dependency is currently not published on _pypi_.
+* Due to [this issue](https://github.com/pypi/warehouse/issues/7136), there is no way to publish remucs on _pypi_ too.
+* Due to [torchaudio](https://pypi.org/project/torchaudio/2.1.2) dependency, the _python_ version is restricted to _3.11_.
 
 ## License
 
