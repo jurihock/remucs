@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import click
 import demucs.api
@@ -177,8 +177,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     analyze(src, data, model=model, quiet=quiet)
     synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.version_option(version=__version__, message='%(version)s')
+@click.command(no_args_is_help=True, context_settings=dict(help_option_names=['-h', '--help']))
 @click.argument('files',       nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
 @click.option('-f', '--fine',  default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
 @click.option('-n', '--norm',  default=False, is_flag=True, help='Normalize output amplitude.')
@@ -187,6 +186,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
 @click.option('-g', '--gain',  default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
 @click.option('-d', '--data',  default=pathlib.Path().home(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
 @click.option('-q', '--quiet', default=False, is_flag=True, help='Don\'t trash stdout.')
+@click.version_option(__version__, '-V', '--version', message='%(version)s')
 def cli(files, fine, norm, mono, bala, gain, data, quiet):
 
     try:
@@ -197,10 +197,14 @@ def cli(files, fine, norm, mono, bala, gain, data, quiet):
         for file in list(set(files)):
             remucs(file, fine=fine, norm=norm, mono=mono, balance=balance, gain=gain, data=data, quiet=quiet)
 
+        exit(0)
+
     except Exception as e:
 
         click.echo(str(e), err=True)
         click.echo(traceback.format_exc(), err=True)
+
+        exit(1)
 
 if __name__ == '__main__':
 
