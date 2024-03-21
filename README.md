@@ -36,7 +36,7 @@ Remarks:
 * Remucs is not compatible with the version _4.0.1_ of [facebookresearch/demucs](https://github.com/facebookresearch/demucs), as published on [pypi](https://pypi.org/project/demucs).
 * The required [adefossez/demucs](https://github.com/adefossez/demucs) dependency is currently not published on _pypi_.
 * Due to [this issue](https://github.com/pypi/warehouse/issues/7136), there is no way to publish remucs on _pypi_ too.
-* Due to [torchaudio](https://pypi.org/project/torchaudio/2.1.2) dependency, the _python_ version is restricted to _3.11_.
+* Due to specific [torchaudio](https://pypi.org/project/torchaudio/2.1.2) dependency, the _python_ version is restricted to _3.11_.
 
 ## License
 
