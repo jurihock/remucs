@@ -4,7 +4,7 @@
 ![license](https://img.shields.io/github/license/jurihock/remucs?color=blue)
 
 The purpose of the _remucs_ command line tool is to extract the individual stems from a mix and remix them again in a certain way.
-Since the stem extraction is based on the [demucs](https://github.com/adefossez/demucs) engine, the choice is restricted to the _drum_, _bass_, _vocal_ and _other_ sources.
+Since the stem extraction is based on the [adefossez/demucs](https://github.com/adefossez/demucs) engine, the choice is restricted to the _drum_, _bass_, _vocal_ and _other_ sources.
 
 ## Usage
 
