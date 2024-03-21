@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import click
 import demucs.api
@@ -47,7 +47,7 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
     dst = {stem: data / model / (stem + suffix) for stem in STEMS}
 
     model = model.lower()
-    assert model in MODELS
+    assert model in MODELS, f'Invalid model name "{model}"! Valid model names are: {", ".join(MODELS)}.'
 
     check = data / (DIGEST + suffix)
     hash0 = check.read_text().strip() if check.exists() else None
@@ -158,10 +158,10 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
 def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~', quiet=True):
 
     file = pathlib.Path(file)
-    assert file.is_file()
+    assert file.is_file(), f'Specified file "{file}" does not exist!'
 
     data = pathlib.Path(data).expanduser()
-    assert data.is_dir()
+    assert data.is_dir(), f'Specified data path "{data}" does not exist!'
 
     if not quiet:
         click.echo(f'Processing {file.resolve()}')
