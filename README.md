@@ -22,6 +22,7 @@ Options:
   -d, --data DIRECTORY  Directory where to store intermediate files.
                         [default: <user’s home directory>]
   -q, --quiet           Don't trash stdout.
+  -V, --version         Show the version and exit.
   -h, --help            Show this message and exit.
 ```
 
