@@ -20,7 +20,7 @@ jobs:
 
     - name: Install
       run: |
-        apt-get install -qy libsndfile1
+        sudo apt-get install -qy libsndfile1
         pip install pytest
         pip install demucs
         pip install .
