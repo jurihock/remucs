@@ -1,5 +1,5 @@
 # install the bleeding edge version of demucs
--e git+https://github.com/adefossez/demucs#egg=demucs
+git+https://github.com/adefossez/demucs#egg=demucs
 
 # install some additional packages
 click
