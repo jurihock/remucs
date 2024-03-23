@@ -1,4 +1,7 @@
-__version__ = '0.1.2'
+import importlib.metadata
+
+__version__ = importlib.metadata.version(__package__) \
+              if __package__ else None
 
 import click
 import hashlib
@@ -223,7 +226,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
 @click.option('-g', '--gain',  default=','.join(["1"]*len(STEMS)), show_default=True, help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
 @click.option('-d', '--data',  default=pathlib.Path().home(), show_default=True, type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help='Directory where to store intermediate files.')
 @click.option('-q', '--quiet', default=False, is_flag=True, help='Don\'t trash stdout.')
-@click.version_option(__version__, '-V', '--version', message='%(version)s')
+@click.version_option(__version__ or 'n.a.', '-V', '--version', message='%(version)s')
 def cli(files, fine, norm, mono, bala, gain, data, quiet):
 
     try:
