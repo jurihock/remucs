@@ -1,0 +1,29 @@
+name: test.yml
+
+on: [push, pull_request]
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Setup
+      uses: actions/setup-python@master
+      with:
+        python-version: '3.11'
+
+    - name: Install
+      run: |
+        pip install -r requirements.txt
+        pip install demucs
+        pip install pytest
+
+    - name: Test
+      run: |
+        pytest --capture=tee-sys tests
