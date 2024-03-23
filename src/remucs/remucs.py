@@ -1,7 +1,6 @@
-__version__ = '0.1'
+__version__ = '0.1.1'
 
 import click
-import demucs.api
 import hashlib
 import numpy
 import os
@@ -9,6 +8,26 @@ import pathlib
 import soundfile
 import tqdm
 import traceback
+import warnings
+
+from packaging.version import parse as VERSION
+
+try:
+
+    import demucs
+
+    DEMUCS = VERSION(demucs.__version__)
+
+    if DEMUCS < VERSION('4.1'):
+        import demucs.separate
+    else:
+        import demucs.api
+
+except ModuleNotFoundError:
+
+    DEMUCS = None
+
+    warnings.warn('In order to use remucs, you also need to install demucs!')
 
 REMUCS = '.remucs'
 DIGEST = 'sha256'
@@ -75,33 +94,50 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
     if not quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
-    progress  = tqdm.tqdm(total=100) if not quiet else None
-    separator = demucs.api.Separator(model=model, callback=callback, callback_arg=dict(progress=progress))
+    if DEMUCS is None:
+        raise RuntimeError('Unable to perform analysis! Please install demucs and try again.')
 
-    # WORKAROUND
-    # The `separate_audio_file` function throws the following error when dealing with .wav files:
-    #   RuntimeError: unsupported operation:
-    #   More than one element of the written-to tensor refers to a single memory location.
-    #   Please clone() the tensor before performing the operation.
-    # Therefore, load the input file manually and clone the resulting tensor as suggested.
-    original  = separator._load_audio(src).clone()
-    separated = separator.separate_tensor(original, separator.samplerate)[-1]
+    if DEMUCS < VERSION('4.1'):
 
-    if progress is not None:
-        progress.update(numpy.clip(100 - progress.n, 0, 100))
-        progress.close()
+        dst = data
+        dst.parent.mkdir(parents=True, exist_ok=True)
 
-    obtained_stems = sorted(separated.keys())
-    expected_stems = sorted(STEMS)
-    assert obtained_stems == expected_stems
-
-    for stem, samples in separated.items():
+        args = ['-n', model, '-o', str(dst), '--filename', '{stem}.{ext}', str(src)]
 
         if not quiet:
-            click.echo(f'Writing {dst[stem].resolve()}')
+            click.echo(f'Executing demucs {DEMUCS} with args \"{" ".join(args)}\"')
 
-        dst[stem].parent.mkdir(parents=True, exist_ok=True)
-        demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
+        demucs.separate.main(args)
+
+    else:
+
+        progress  = tqdm.tqdm(total=100) if not quiet else None
+        separator = demucs.api.Separator(model=model, callback=callback, callback_arg=dict(progress=progress))
+
+        # WORKAROUND
+        # The `separate_audio_file` function throws the following error when dealing with .wav files:
+        #   RuntimeError: unsupported operation:
+        #   More than one element of the written-to tensor refers to a single memory location.
+        #   Please clone() the tensor before performing the operation.
+        # Therefore, load the input file manually and clone the resulting tensor as suggested.
+        original  = separator._load_audio(src).clone()
+        separated = separator.separate_tensor(original, separator.samplerate)[-1]
+
+        if progress is not None:
+            progress.update(numpy.clip(100 - progress.n, 0, 100))
+            progress.close()
+
+        obtained_stems = sorted(separated.keys())
+        expected_stems = sorted(STEMS)
+        assert obtained_stems == expected_stems
+
+        for stem, samples in separated.items():
+
+            if not quiet:
+                click.echo(f'Writing {dst[stem].resolve()}')
+
+            dst[stem].parent.mkdir(parents=True, exist_ok=True)
+            demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
 
 def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
