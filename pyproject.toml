@@ -52,7 +52,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-demucs = ["demucs"]
+demucs = ["demucs>=4.0"]
 
 [project.scripts]
 remucs = "remucs.remucs:cli"
