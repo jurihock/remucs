@@ -1,7 +1,8 @@
 # Remucs
 
-![language](https://img.shields.io/badge/language-Python-blue)
-![license](https://img.shields.io/github/license/jurihock/remucs?color=blue)
+![language](https://img.shields.io/badge/languages-Python-blue)
+![license](https://img.shields.io/github/license/jurihock/remucs?color=green)
+![pypi](https://img.shields.io/pypi/v/remucs?color=gold)
 
 The purpose of the _remucs_ command line tool is to extract the individual stems from a mix and remix them again in a certain way.
 Since the stem extraction is based on the [adefossez/demucs](https://github.com/adefossez/demucs) engine, the choice is restricted to the _drum_, _bass_, _vocal_ and _other_ sources.
@@ -28,16 +29,19 @@ Options:
 
 ## Install
 
+Choose between the latest _remucs_ release or the bleeding edge version:
+
 ```
+pip install -U remucs
 pip install -U git+https://github.com/jurihock/remucs#egg=remucs
 ```
 
-Remarks:
+Don't forget to install one of the available versions of _demucs_ as well:
 
-* Remucs is not compatible with the version _4.0.1_ of [facebookresearch/demucs](https://github.com/facebookresearch/demucs), as published on [pypi](https://pypi.org/project/demucs).
-* The required [adefossez/demucs](https://github.com/adefossez/demucs) dependency is currently not published on _pypi_.
-* Due to [this issue](https://github.com/pypi/warehouse/issues/7136), there is no way to publish remucs on _pypi_ too.
-* Due to specific [torchaudio](https://pypi.org/project/torchaudio/2.1.2) dependency, the _python_ version is restricted to _3.11_.
+```
+pip install -U demucs
+pip install -U git+https://github.com/adefossez/demucs#egg=demucs
+```
 
 ## License
 
