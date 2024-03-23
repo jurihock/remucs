@@ -20,9 +20,10 @@ jobs:
 
     - name: Install
       run: |
-        pip install -r requirements.txt
-        pip install demucs
+        apt-get install -qy libsndfile1
         pip install pytest
+        pip install demucs
+        pip install .
 
     - name: Test
       run: |
