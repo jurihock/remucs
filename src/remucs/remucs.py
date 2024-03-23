@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import click
 import hashlib
@@ -17,6 +17,7 @@ try:
     import demucs
 
     DEMUCS = VERSION(demucs.__version__)
+    DEMUCS = VERSION(DEMUCS.base_version)
 
     if DEMUCS < VERSION('4.1'):
         import demucs.separate
