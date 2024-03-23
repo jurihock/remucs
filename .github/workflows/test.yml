@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
 
-  test:
+  test-pypi:
 
     runs-on: ubuntu-latest
 
@@ -13,16 +13,43 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: Setup
+    - name: Python 3.11
       uses: actions/setup-python@master
       with:
         python-version: '3.11'
 
     - name: Install
       run: |
-        sudo apt-get install -qy libsndfile1
+        sudo apt update
+        sudo apt install --yes libsndfile1
         pip install pytest
         pip install demucs
+        pip install .
+
+    - name: Test
+      run: |
+        pytest --capture=tee-sys tests
+
+  test-github:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Python 3.11
+      uses: actions/setup-python@master
+      with:
+        python-version: '3.11'
+
+    - name: Install
+      run: |
+        sudo apt update
+        sudo apt install --yes libsndfile1
+        pip install pytest
+        pip install git+https://github.com/adefossez/demucs#egg=demucs
         pip install .
 
     - name: Test
