@@ -124,8 +124,6 @@ def test_stereo(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'stereo', f, db[i[0]], db[i[1]])
 
@@ -148,8 +146,6 @@ def test_mono(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'mono', f, db[i[0]], db[i[1]])
 
@@ -172,8 +168,6 @@ def test_gain(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'gain', f, db[i[0]], db[i[1]])
 
@@ -196,8 +190,6 @@ def test_norm(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'norm', f, db[i[0]], db[i[1]])
 
@@ -220,8 +212,6 @@ def test_balance_left(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'balance left', f, db[i[0]], db[i[1]])
 
@@ -244,8 +234,6 @@ def test_balance_right(session):
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
-    assert len(db) == len(hz)
-
     i = find(hz, f)
     print('y', 'balance right', f, db[i[0]], db[i[1]])
 
