@@ -12,7 +12,7 @@ numpy.set_printoptions(suppress=True)
 
 def time(d, sr):
 
-    return numpy.linspace(0, d, sr)
+    return numpy.arange(0, d, 1/sr)
 
 def wave(f, t):
 
