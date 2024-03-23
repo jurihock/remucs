@@ -7,6 +7,5 @@
 # install some additional packages
 click
 numpy
-packaging
 soundfile
 tqdm

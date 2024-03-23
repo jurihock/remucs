@@ -13,24 +13,21 @@ import tqdm
 import traceback
 import warnings
 
-from packaging.version import parse as VERSION
+DEMUCS = None
 
 try:
-
-    import demucs
-
-    DEMUCS = VERSION(demucs.__version__)
-    DEMUCS = VERSION(DEMUCS.base_version)
-
-    if DEMUCS < VERSION('4.1'):
-        import demucs.separate
-    else:
-        import demucs.api
-
+    import demucs.separate # >= 4.0
+    DEMUCS = 'demucs.separate'
 except ModuleNotFoundError:
+    pass
 
-    DEMUCS = None
+try:
+    import demucs.api # >= 4.1
+    DEMUCS = 'demucs.api'
+except ModuleNotFoundError:
+    pass
 
+if not DEMUCS:
     warnings.warn('In order to use remucs, you also need to install demucs!')
 
 REMUCS = '.remucs'
@@ -44,25 +41,6 @@ def checksum(file, digest):
         return hashlib.file_digest(stream, digest).hexdigest()
 
 def analyze(file, data, *, model=MODELS[0], quiet=False):
-
-    def callback(args):
-
-        length = args['audio_length']
-        models = args['models']
-        model  = args['model_idx_in_bag']
-        offset = args['segment_offset']
-        state  = args['state']
-        prog   = args['progress']
-
-        if state.lower() == 'start' and prog is not None:
-
-            y = length * models
-            x = length * model + offset
-
-            n = numpy.clip(numpy.ceil(100 * x / y), 0, 100)
-            m = numpy.clip(n - prog.n, 0, 100 - prog.n)
-
-            prog.update(m)
 
     suffix = file.suffix
 
@@ -98,10 +76,7 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
     if not quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
-    if DEMUCS is None:
-        raise RuntimeError('Unable to perform analysis! Please install demucs and try again.')
-
-    if DEMUCS < VERSION('4.1'):
+    if DEMUCS == 'demucs.separate':
 
         dst = data
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -109,11 +84,30 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
         args = ['-n', model, '-o', str(dst), '--filename', '{stem}.{ext}', str(src)]
 
         if not quiet:
-            click.echo(f'Executing demucs {DEMUCS} with args \"{" ".join(args)}\"')
+            click.echo(f'Executing demucs with args \"{" ".join(args)}\"')
 
         demucs.separate.main(args)
 
-    else:
+    elif DEMUCS == 'demucs.api':
+
+        def callback(args):
+
+            length = args['audio_length']
+            models = args['models']
+            model  = args['model_idx_in_bag']
+            offset = args['segment_offset']
+            state  = args['state']
+            prog   = args['progress']
+
+            if state.lower() == 'start' and prog is not None:
+
+                y = length * models
+                x = length * model + offset
+
+                n = numpy.clip(numpy.ceil(100 * x / y), 0, 100)
+                m = numpy.clip(n - prog.n, 0, 100 - prog.n)
+
+                prog.update(m)
 
         progress  = tqdm.tqdm(total=100) if not quiet else None
         separator = demucs.api.Separator(model=model, callback=callback, callback_arg=dict(progress=progress))
@@ -142,6 +136,10 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
 
             dst[stem].parent.mkdir(parents=True, exist_ok=True)
             demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
+
+    else:
+
+        raise RuntimeError('Unable to perform analysis! Please install demucs and try again.')
 
 def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
