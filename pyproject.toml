@@ -5,7 +5,7 @@ Repository = "https://github.com/jurihock/remucs.git"
 Issues = "https://github.com/jurihock/remucs/issues"
 
 [project]
-version = "0.2"
+version = "0.3"
 name = "remucs"
 description = "Demucs wrapper for remixing audio files with additional customizations"
 authors = [{name = "Juergen Hock", email = "juergen.hock@jurihock.de"}]
