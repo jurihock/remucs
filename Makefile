@@ -23,7 +23,7 @@ install:
 	@python -m pip install --upgrade remucs
 
 install-test:
-	@python -m pip install --index-url https://test.pypi.org/simple/ --no-deps --upgrade remucs
+	@python -m pip install --index-url https://test.pypi.org/simple --upgrade remucs
 
 uninstall:
 	@python -m pip uninstall --yes remucs
