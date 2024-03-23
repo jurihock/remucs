@@ -1,7 +1,8 @@
 # Remucs
 
 ![language](https://img.shields.io/badge/languages-Python-blue)
-![license](https://img.shields.io/github/license/jurihock/remucs?color=green)
+![license](https://img.shields.io/github/license/jurihock/remucs?color=blue)
+![test](https://img.shields.io/github/actions/workflow/status/jurihock/remucs/test.yml?branch=main&label=test)
 ![pypi](https://img.shields.io/pypi/v/remucs?color=gold)
 
 The purpose of the _remucs_ command line tool is to extract the individual stems from a mix and remix them again in a certain way.
