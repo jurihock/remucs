@@ -3,15 +3,16 @@ import importlib.metadata
 __version__ = importlib.metadata.version(__package__) \
               if __package__ else None
 
-import click
 import hashlib
-import numpy
 import os
 import pathlib
-import soundfile
-import tqdm
 import traceback
 import warnings
+
+import click
+import numpy
+import soundfile
+import tqdm
 
 DEMUCS = None
 
