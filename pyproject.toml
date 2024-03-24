@@ -64,3 +64,11 @@ include = ["remucs"]
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = [
+  "missing-module-docstring",
+  "missing-function-docstring",
+  "too-many-arguments",
+  "line-too-long",
+]
