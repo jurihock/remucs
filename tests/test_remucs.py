@@ -38,7 +38,7 @@ def find(hz, f):
 
 def issame(x, y, tol=1):
 
-    return abs(x - y) <= 1
+    return abs(x - y) <= tol
 
 def isless(x, y):
 
