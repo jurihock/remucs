@@ -1,11 +1,11 @@
-.PHONY: help boot build install install-test reinstall uninstall upload upload-test which
+.PHONY: help boot build install install-test uninstall upload upload-test which
 
 help:
 	@echo boot
 	@echo build
 	@echo install
+	@echo install-edit
 	@echo install-test
-	@echo reinstall
 	@echo uninstall
 	@echo upload
 	@echo upload-test
@@ -21,6 +21,9 @@ build:
 
 install:
 	@python -m pip install --upgrade remucs
+
+install-edit:
+	@python -m pip install --editable .
 
 install-test:
 	@python -m pip install --index-url https://test.pypi.org/simple --upgrade remucs
