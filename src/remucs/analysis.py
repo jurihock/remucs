@@ -1,4 +1,3 @@
-import hashlib
 import os
 import warnings
 
@@ -8,6 +7,7 @@ import tqdm
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
+from remucs.utils import filehash
 
 DEMUCS = None
 
@@ -25,11 +25,6 @@ except ModuleNotFoundError:
 
 if not DEMUCS:
     warnings.warn('In order to use remucs, you also need to install demucs!')
-
-def checksum(file, digest):
-
-    with open(file, 'rb') as stream:
-        return hashlib.file_digest(stream, digest).hexdigest()
 
 def analyze_demucs_separate(model, src, dst, quiet):
 
@@ -110,7 +105,7 @@ def analyze(file, data, *, model='htdemucs', quiet=True):
 
     check = data / (DIGEST + suffix)
     hash0 = check.read_text().strip() if check.exists() else None
-    hash1 = checksum(src, DIGEST).strip()
+    hash1 = filehash(src, DIGEST).strip()
 
     if hash0 != hash1:
 

@@ -1,11 +1,12 @@
 import click
 import numpy
 import soundfile
+import stftpitchshift
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
 
-def parse_balance_weights(balance):
+def stereo_balance_weights(balance):
 
     if balance is None:
         balance = numpy.zeros(len(STEMS))
@@ -18,7 +19,7 @@ def parse_balance_weights(balance):
 
     return numpy.clip(y[..., None, None] * [-1, +1] + 1, 0, 1)
 
-def parse_gain_weights(gain):
+def stereo_gain_weights(gain):
 
     if gain is None:
         gain = numpy.ones(len(STEMS))
@@ -31,7 +32,33 @@ def parse_gain_weights(gain):
 
     return numpy.clip(y[..., None, None], -10, +10)
 
-def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=None, gain=None, quiet=True):
+def shiftpitch(x, *, samplerate, factor, quefrency):
+
+    x = numpy.atleast_2d(x)
+    y = numpy.zeros_like(x)
+    assert len(x.shape) == 2 and x.shape[-1] == 2
+
+    framesize = 4 * 1024
+    overlap   = 4
+    hopsize   = framesize // overlap
+    normalize = True
+
+    pitchshifter = stftpitchshift.StftPitchShift(
+        framesize=framesize,
+        hopsize=hopsize,
+        samplerate=samplerate)
+
+    for i in range(x.shape[-1]):
+
+        y[:, i] = pitchshifter.shiftpitch(
+            x[:, i],
+            factors=factor,
+            quefrency=quefrency,
+            normalization=normalize)
+
+    return y
+
+def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=None, gain=None, pitch=1.0, quiet=True):
 
     suffix = file.suffix
 
@@ -41,8 +68,8 @@ def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=
     if not quiet:
         click.echo(f'Synthesizing {dst.resolve()}')
 
-    balance = parse_balance_weights(balance)
-    gain    = parse_gain_weights(gain)
+    balance = stereo_balance_weights(balance)
+    gain    = stereo_gain_weights(gain)
 
     x, sr = zip(*[soundfile.read(stem) for stem in src])
 
@@ -50,6 +77,18 @@ def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=
     sr = sr[0]
     x  = numpy.array(x)
     assert len(x.shape) == 3 and x.shape[-1] == 2
+
+    if pitch and pitch > 0 and pitch != 1:
+
+        if not quiet:
+            click.echo(f'Applying pitch shifting by factor {pitch}')
+
+        stems       = [STEMS.index(stem) for stem in ['bass', 'other', 'vocals']]
+        factors     = [pitch] * len(stems)
+        quefrencies = [0, 0, 1e-3]
+
+        for i, stem in enumerate(stems):
+            x[stem] = shiftpitch(x[stem], samplerate=sr, factor=factors[i], quefrency=quefrencies[i])
 
     if not quiet:
         if mono:

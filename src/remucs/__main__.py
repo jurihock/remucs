@@ -6,6 +6,7 @@ import click
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
 from remucs.remucs import remucs
+from remucs.utils import cent, semitone
 
 @click.command(                context_settings={'help_option_names': ['-h', '--help']},
                                no_args_is_help=True)
@@ -28,16 +29,20 @@ from remucs.remucs import remucs
 @click.option('-b', '--bala',
                                default=','.join(["0"]*len(STEMS)),
                                show_default=True,
-                               help=f'Balance of individual stems [{",".join(sorted(STEMS))}].')
+                               help=f'Balance of individual stems \"{",".join(sorted(STEMS))}\", e.g. \"0,0.5,1,-1\".')
 @click.option('-g', '--gain',
                                default=','.join(["1"]*len(STEMS)),
                                show_default=True,
-                               help=f'Gain of individual stems [{",".join(sorted(STEMS))}].')
+                               help=f'Gain of individual stems \"{",".join(sorted(STEMS))}\", e.g. \"2,1,0.5,0\".')
+@click.option('-p', '--pitch',
+                               default='0',
+                               show_default=True,
+                               help='Pitch shifting factor in semitones followed by cents, e.g -12 or +12 or +3-50.')
 @click.option('-d', '--data',
                                default=pathlib.Path().home(),
                                show_default=True,
                                type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path),
-                               help='Directory where to store intermediate files.')
+                               help='Directory where to store the intermediate files.')
 @click.option('-q', '--quiet',
                                default=False,
                                is_flag=True,
@@ -46,15 +51,16 @@ from remucs.remucs import remucs
                                VERSION,
                                '-V', '--version',
                                message='%(version)s')
-def main(files, fine, norm, mono, bala, gain, data, quiet):
+def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
 
     try:
 
         balance = [float(_) for _ in bala.split(',')]
         gain    = [float(_) for _ in gain.split(',')]
+        pitch   = semitone(pitch) * cent(pitch)
 
         for file in list(set(files)):
-            remucs(file, fine=fine, norm=norm, mono=mono, balance=balance, gain=gain, data=data, quiet=quiet)
+            remucs(file, fine=fine, norm=norm, mono=mono, balance=balance, gain=gain, pitch=pitch, data=data, quiet=quiet)
 
     except Exception as error:
 

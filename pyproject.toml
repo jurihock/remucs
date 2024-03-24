@@ -42,6 +42,7 @@ dependencies = [
   "click",
   "numpy",
   "soundfile",
+  "stftpitchshift",
   "tqdm",
 ]
 
@@ -71,6 +72,7 @@ addopts = ["--capture=tee-sys"]
 
 [tool.pylint]
 max-args = 10
+max-locals = 42
 max-line-length = 200
 exclude-protected = ["_load_audio"] # demucs.api.Separator._load_audio
 
@@ -83,3 +85,4 @@ disable = [
 [tool.pyright]
 reportMissingImports          = false # import demucs.{separate,api}
 reportPossiblyUnboundVariable = false # import demucs.{separate,api}
+reportPrivateImportUsage      = false # demucs.api.save_audio

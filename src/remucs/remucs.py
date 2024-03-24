@@ -7,7 +7,7 @@ from remucs.common import *
 from remucs.analysis import analyze
 from remucs.synthesis import synthesize
 
-def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None, data='~', quiet=True):
+def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None, pitch=1.0, data='~', quiet=True):
 
     file = pathlib.Path(file)
 
@@ -33,4 +33,4 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None,
     model = MODELS[fine]
 
     analyze(src, data, model=model, quiet=quiet)
-    synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
+    synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, pitch=pitch, quiet=quiet)
