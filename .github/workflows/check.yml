@@ -1,0 +1,31 @@
+name: check.yml
+
+on: [push, pull_request]
+
+env:
+  PYTHON: 3.11
+
+jobs:
+
+  check-pylint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Python
+      uses: actions/setup-python@master
+      with:
+        python-version: ${{ env.PYTHON }}
+
+    - name: Install
+      run: |
+        pip install pylint
+        pip install .
+
+    - name: Check
+      run: |
+        pylint remucs
