@@ -112,7 +112,7 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
                 prog.update(m)
 
         progress  = tqdm.tqdm(total=100) if not quiet else None
-        separator = demucs.api.Separator(model=model, callback=callback, callback_arg=dict(progress=progress))
+        separator = demucs.api.Separator(model=model, callback=callback, callback_arg={'progress': progress})
 
         # WORKAROUND
         # The `separate_audio_file` function throws the following error when dealing with .wav files:
@@ -217,7 +217,7 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), 
     analyze(src, data, model=model, quiet=quiet)
     synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, quiet=quiet)
 
-@click.command(no_args_is_help=True, context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(no_args_is_help=True, context_settings={'help_option_names': ['-h', '--help']})
 @click.argument('files',       nargs=-1, required=True, type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path))
 @click.option('-f', '--fine',  default=False, is_flag=True, help=f'Use fine-tuned "{MODELS[1]}" model.')
 @click.option('-n', '--norm',  default=False, is_flag=True, help='Normalize output amplitude.')
