@@ -2,6 +2,9 @@ name: publish.yml
 
 on: [push]
 
+env:
+  PYTHON: 3.11
+
 jobs:
 
   publish:
@@ -13,10 +16,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: Python 3.11
+    - name: Python
       uses: actions/setup-python@master
       with:
-        python-version: '3.11'
+        python-version: ${{ env.PYTHON }}
 
     - name: Install
       run: |
