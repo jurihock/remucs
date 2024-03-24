@@ -81,5 +81,5 @@ disable = [
 ]
 
 [tool.pyright]
+reportMissingImports          = false # import demucs.{separate,api}
 reportPossiblyUnboundVariable = false # import demucs.{separate,api}
-reportPrivateImportUsage      = false # demucs.api.save_audio
