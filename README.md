@@ -5,7 +5,7 @@
 ![test](https://img.shields.io/github/actions/workflow/status/jurihock/remucs/test.yml?branch=main&label=test)
 ![pypi](https://img.shields.io/pypi/v/remucs?color=gold)
 
-The purpose of the _remucs_ command line tool is to extract the individual stems from a mix and remix them again in a certain way, e.g. by adjusting the volume gain, left-right channel balance and last but not least, transient-preserving pitch shifting. Since the stem extraction is based on the [adefossez/demucs](https://github.com/adefossez/demucs) engine, the stem choice is restricted to the _drum_, _bass_, _vocal_ and _other_ sources.
+The purpose of the _remucs_ command line tool is to extract the individual stems from a mix and remix them again in a certain way, e.g. by adjusting the volume gain, left-right channel balance and last but not least, applying transient-preserving pitch shifting. Since the stem extraction is based on the [adefossez/demucs](https://github.com/adefossez/demucs) engine, the stem choice is restricted to the _drum_, _bass_, _vocal_ and _other_ sources.
 
 ## Usage
 
