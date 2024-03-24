@@ -1,9 +1,3 @@
-[project.urls]
-Homepage = "https://github.com/jurihock/remucs"
-Documentation = "https://github.com/jurihock/remucs/blob/main/README.md"
-Repository = "https://github.com/jurihock/remucs.git"
-Issues = "https://github.com/jurihock/remucs/issues"
-
 [project]
 version = "0.3"
 name = "remucs"
@@ -54,21 +48,38 @@ dependencies = [
 [project.optional-dependencies]
 demucs = ["demucs>=4.0"]
 
+[project.urls]
+Homepage = "https://github.com/jurihock/remucs"
+Documentation = "https://github.com/jurihock/remucs/blob/main/README.md"
+Repository = "https://github.com/jurihock/remucs.git"
+Issues = "https://github.com/jurihock/remucs/issues"
+
 [project.scripts]
 remucs = "remucs.__main__:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["remucs"]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.pylint.'MESSAGES CONTROL']
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["remucs"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--capture=tee-sys"]
+
+[tool.pylint]
+max-args = 10
+max-line-length = 200
+exclude-protected = ["_load_audio"] # demucs.api.Separator._load_audio
+
+[tool.pylint."messages control"]
 disable = [
-  "missing-module-docstring",
   "missing-function-docstring",
-  "too-many-arguments",
-  "line-too-long",
+  "missing-module-docstring",
 ]
+
+[tool.pyright]
+reportPossiblyUnboundVariable = false # import demucs.{separate,api}
+reportPrivateImportUsage      = false # demucs.api.save_audio

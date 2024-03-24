@@ -31,7 +31,7 @@ jobs:
 
     - name: Test
       run: |
-        pytest --capture=tee-sys tests
+        pytest
 
   test-github:
 
@@ -57,4 +57,4 @@ jobs:
 
     - name: Test
       run: |
-        pytest --capture=tee-sys tests
+        pytest

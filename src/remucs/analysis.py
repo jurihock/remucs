@@ -78,7 +78,7 @@ def analyze_demucs_api(model, src, dst, quiet):
     #   More than one element of the written-to tensor refers to a single memory location.
     #   Please clone() the tensor before performing the operation.
     # Therefore, load the input file manually and clone the resulting tensor as suggested.
-    original  = separator._load_audio(src).clone() # pylint: disable=protected-access
+    original  = separator._load_audio(src).clone()
     separated = separator.separate_tensor(original, separator.samplerate)[-1]
     assert sorted(separated.keys()) == sorted(STEMS)
 

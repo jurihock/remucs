@@ -28,4 +28,27 @@ jobs:
 
     - name: Check
       run: |
-        pylint remucs
+        pylint src/remucs
+
+  check-pyright:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Python
+      uses: actions/setup-python@master
+      with:
+        python-version: ${{ env.PYTHON }}
+
+    - name: Install
+      run: |
+        pip install pyright
+        pip install .
+
+    - name: Check
+      run: |
+        pyright --pythonpath $(which python) src/remucs
