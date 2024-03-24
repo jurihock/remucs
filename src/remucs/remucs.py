@@ -50,7 +50,11 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
     dst = {stem: data / model / (stem + suffix) for stem in STEMS}
 
     model = model.lower()
-    assert model in MODELS, f'Invalid model name "{model}"! Valid model names are: {", ".join(MODELS)}.'
+
+    if model not in MODELS:
+        raise ValueError(
+            f'Invalid model name "{model}"! ' +
+            f'Valid model names are: {", ".join(MODELS)}.')
 
     check = data / (DIGEST + suffix)
     hash0 = check.read_text().strip() if check.exists() else None
@@ -122,14 +126,11 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
         # Therefore, load the input file manually and clone the resulting tensor as suggested.
         original  = separator._load_audio(src).clone() # pylint: disable=protected-access
         separated = separator.separate_tensor(original, separator.samplerate)[-1]
+        assert sorted(separated.keys()) == sorted(STEMS)
 
         if progress is not None:
             progress.update(numpy.clip(100 - progress.n, 0, 100))
             progress.close()
-
-        obtained_stems = sorted(separated.keys())
-        expected_stems = sorted(STEMS)
-        assert obtained_stems == expected_stems
 
         for stem, samples in separated.items():
 
@@ -141,7 +142,9 @@ def analyze(file, data, *, model=MODELS[0], quiet=False):
 
     else:
 
-        raise RuntimeError('Unable to perform analysis! Please install demucs and try again.')
+        raise ModuleNotFoundError(
+            'Unable to perform analysis! ' +
+            'Please install demucs and try again.')
 
 def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), quiet=False):
 
@@ -170,7 +173,7 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
     assert len(list(set(sr))) == 1
     sr = sr[0]
     x  = numpy.array(x)
-    assert x.ndim == 3 and x.shape[-1] == 2
+    assert len(x.shape) == 3 and x.shape[-1] == 2
 
     if not quiet:
         if mono:
@@ -198,10 +201,16 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
 def remucs(file, *, fine=False, norm=False, mono=False, balance=[0]*len(STEMS), gain=[1]*len(STEMS), data='~', quiet=True):
 
     file = pathlib.Path(file)
-    assert file.is_file(), f'Specified file "{file}" does not exist!'
+
+    if not file.is_file():
+        raise FileNotFoundError(
+            f'The specified file "{file}" does not exist!')
 
     data = pathlib.Path(data).expanduser()
-    assert data.is_dir(), f'Specified data path "{data}" does not exist!'
+
+    if not data.is_dir():
+        raise FileNotFoundError(
+            f'The specified data path "{data}" does not exist!')
 
     if not quiet:
         click.echo(f'Processing {file.resolve()}')
