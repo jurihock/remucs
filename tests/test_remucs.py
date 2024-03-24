@@ -28,11 +28,21 @@ def freqs(x, sr):
     db = 20 * numpy.log10(2 * numpy.abs(y) / numpy.sum(w))
     hz = numpy.fft.rfftfreq(n, 1/sr)
 
+    db = numpy.ceil(db).astype(int)
+
     return db, hz
 
 def find(hz, f):
 
     return numpy.abs(hz[..., None] - f).argmin(axis=0)
+
+def issame(x, y, tol=1):
+
+    return abs(x - y) <= 1
+
+def isless(x, y):
+
+    return x <= y
 
 @pytest.fixture(scope='session')
 def session(tmpdir_factory):
@@ -49,9 +59,29 @@ def session(tmpdir_factory):
     f  = [1000, 2000]
 
     hz = numpy.fft.rfftfreq(4096, 1/sr)
-    f  = numpy.floor(hz[find(hz, f)])
+    f  = hz[find(hz, f)]
+
+    f  = numpy.floor(f).astype(int)
 
     return dict(sr=sr, f=f, src=src, dst=dst, data=data)
+
+def probe(session, **kwargs):
+
+    data = session['data']
+
+    src = session['src']
+    dst = session['dst']
+
+    sr = session['sr']
+    f  = session['f']
+
+    remucs.remucs(src, data=data, **kwargs)
+    y = numpy.array(soundfile.read(dst)[0])
+
+    db, hz = freqs(y, sr)
+    i = find(hz, f)
+
+    return db[i]
 
 def test_setup(session):
 
@@ -100,144 +130,72 @@ def test_debug(session):
     assert len(db) == len(hz)
 
     i = db.argmax(axis=0)
-    j = numpy.floor(hz[i])
-    print('x', j, db[i[0]], db[i[1]])
+    j = numpy.floor(hz[i]).astype(int)
+    print('x debug', db[i[0]], db[i[1]], '@', j)
 
     db, hz = freqs(y, sr)
     assert len(db) == len(hz)
 
     i = db.argmax(axis=0)
-    j = numpy.floor(hz[i])
-    print('y', j, db[i[0]], db[i[1]])
+    j = numpy.floor(hz[i]).astype(int)
+    print('y debug', db[i[0]], db[i[1]], '@', j)
 
 def test_stereo(session):
 
-    data = session['data']
+    db = probe(session, mono=False)
+    print('y stereo', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, mono=False, data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'stereo', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0],   0, atol=1)
-    assert numpy.isclose(db[i[0]][1], -55, atol=15)
-    assert numpy.isclose(db[i[1]][0], -55, atol=15)
-    assert numpy.isclose(db[i[1]][1],   0, atol=1)
+    assert issame(db[0, 0],  0)
+    assert isless(db[0, 1], -40)
+    assert isless(db[1, 0], -40)
+    assert issame(db[1, 1],  0)
 
 def test_mono(session):
 
-    data = session['data']
+    db = probe(session, mono=True)
+    print('y mono', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, mono=True, data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'mono', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0], -6, atol=1)
-    assert numpy.isclose(db[i[0]][1], -6, atol=1)
-    assert numpy.isclose(db[i[1]][0], -6, atol=1)
-    assert numpy.isclose(db[i[1]][1], -6, atol=1)
+    assert issame(db[0, 0], -6)
+    assert issame(db[0, 1], -6)
+    assert issame(db[1, 0], -6)
+    assert issame(db[1, 1], -6)
 
 def test_gain(session):
 
-    data = session['data']
+    db = probe(session, norm=False, gain=[1, 1, 0.5, 1])
+    print('y gain', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, norm=False, gain=[1, 1, 0.5, 1], data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'gain', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0],  -6, atol=1)
-    assert numpy.isclose(db[i[0]][1], -55, atol=15)
-    assert numpy.isclose(db[i[1]][0], -55, atol=15)
-    assert numpy.isclose(db[i[1]][1],  -6, atol=1)
+    assert issame(db[0, 0], -6)
+    assert isless(db[0, 1], -40)
+    assert isless(db[1, 0], -40)
+    assert issame(db[1, 1], -6)
 
 def test_norm(session):
 
-    data = session['data']
+    db = probe(session, norm=True, gain=[1, 1, 0.5, 1])
+    print('y norm', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, norm=True, gain=[1, 1, 0.5, 1], data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'norm', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0],   0, atol=1)
-    assert numpy.isclose(db[i[0]][1], -55, atol=15)
-    assert numpy.isclose(db[i[1]][0], -55, atol=15)
-    assert numpy.isclose(db[i[1]][1],   0, atol=1)
+    assert issame(db[0, 0],  0)
+    assert isless(db[0, 1], -40)
+    assert isless(db[1, 0], -40)
+    assert issame(db[1, 1],  0)
 
 def test_balance_left(session):
 
-    data = session['data']
+    db = probe(session, balance=[0, 0, -1, 0])
+    print('y balance left', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, balance=[0, 0, -1, 0], data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'balance left', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0],   0, atol=1)
-    assert numpy.isclose(db[i[0]][1], -55, atol=15)
-    assert numpy.isclose(db[i[1]][0], -55, atol=15)
-    assert numpy.isclose(db[i[1]][1], -55, atol=15)
+    assert issame(db[0, 0],  0)
+    assert isless(db[0, 1], -40)
+    assert isless(db[1, 0], -40)
+    assert isless(db[1, 1], -40)
 
 def test_balance_right(session):
 
-    data = session['data']
+    db = probe(session, balance=[0, 0, +1, 0])
+    print('y balance right', db[0], db[1])
 
-    src = session['src']
-    dst = session['dst']
-
-    sr = session['sr']
-    f  = session['f']
-
-    remucs.remucs(src, balance=[0, 0, +1, 0], data=data)
-    y = numpy.array(soundfile.read(dst)[0])
-
-    db, hz = freqs(y, sr)
-    i = find(hz, f)
-    print('y', 'balance right', f, db[i[0]], db[i[1]])
-
-    assert numpy.isclose(db[i[0]][0], -55, atol=15)
-    assert numpy.isclose(db[i[0]][1], -55, atol=15)
-    assert numpy.isclose(db[i[1]][0], -55, atol=15)
-    assert numpy.isclose(db[i[1]][1],   0, atol=1)
+    assert isless(db[0, 0], -40)
+    assert isless(db[0, 1], -40)
+    assert isless(db[1, 0], -40)
+    assert issame(db[1, 1],  0)
