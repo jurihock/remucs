@@ -174,13 +174,13 @@ def synthesize(file, data, *, model=MODELS[0], norm=False, mono=False, balance=[
 
     if not quiet:
         if mono:
-            click.echo(f'Converting input to mono')
+            click.echo('Converting input to mono')
         if not numpy.all(numpy.equal(numpy.unique(b), 1)):
             click.echo(f'Applying balance weights {b.tolist()}')
         if not numpy.all(numpy.equal(numpy.unique(g), 1)):
             click.echo(f'Applying gain weights {g.tolist()}')
         if norm:
-            click.echo(f'Normalizing output')
+            click.echo('Normalizing output')
 
     if mono:
         x = numpy.mean(x, axis=-1)
