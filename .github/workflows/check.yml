@@ -51,4 +51,4 @@ jobs:
 
     - name: Check
       run: |
-        pyright --pythonpath $(which python) src/remucs
+        pyright src/remucs --pythonpath $(which python)
