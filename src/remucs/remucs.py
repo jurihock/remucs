@@ -6,6 +6,7 @@ __version__ = importlib.metadata.version(__package__) \
 import hashlib
 import os
 import pathlib
+import sys
 import traceback
 import warnings
 
@@ -236,14 +237,14 @@ def cli(files, fine, norm, mono, bala, gain, data, quiet):
         for file in list(set(files)):
             remucs(file, fine=fine, norm=norm, mono=mono, balance=balance, gain=gain, data=data, quiet=quiet)
 
-        exit(0)
+        sys.exit(0)
 
     except Exception as e:
 
         click.echo(str(e), err=True)
         click.echo(traceback.format_exc(), err=True)
 
-        exit(1)
+        sys.exit(1)
 
 if __name__ == '__main__':
 
