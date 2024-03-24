@@ -1,12 +1,10 @@
-import os, sys
-src = os.path.join(os.path.dirname(__file__), '..', 'src')
-sys.path.insert(0, src)
+import pathlib
 
 import numpy
-import pathlib
 import pytest
-import remucs
 import soundfile
+
+import remucs
 
 numpy.set_printoptions(suppress=True)
 

@@ -55,7 +55,7 @@ dependencies = [
 demucs = ["demucs>=4.0"]
 
 [project.scripts]
-remucs = "remucs.remucs:cli"
+remucs = "remucs.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
