@@ -16,7 +16,7 @@ class RemucsOptions:
     pitch:     float = 1
     quefrency: float = 1e-3
 
-    order:   int = 12
+    order:   int = 13
     overlap: int = 4
 
     @property
