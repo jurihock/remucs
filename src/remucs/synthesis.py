@@ -87,16 +87,16 @@ def synthesize(file, data, opts):
         stems       = [STEMS.index(stem) for stem in ['bass', 'other', 'vocals']]
         factors     = [pitch] * len(stems)
         quefrencies = [0, 0, opts.quefrency]
-        framesize   = opts.framesize
-        hopsize     = opts.hopsize
+        framesizes  = [opts.framesize] * len(stems)
+        hopsizes    = [opts.hopsize] * len(stems)
 
         for i, stem in enumerate(stems):
             x[stem] = shiftpitch(x[stem],
                 samplerate=sr,
                 factor=factors[i],
                 quefrency=quefrencies[i],
-                framesize=framesize,
-                hopsize=hopsize)
+                framesize=framesizes[i],
+                hopsize=hopsizes[i])
 
     if not opts.quiet:
         if mono:
