@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Dict
+
 import os
 import warnings
 
@@ -7,6 +10,7 @@ import tqdm
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
+from remucs.options import RemucsOptions
 from remucs.utils import filehash
 
 DEMUCS = None
@@ -26,19 +30,22 @@ except ModuleNotFoundError:
 if not DEMUCS:
     warnings.warn('In order to use remucs, you also need to install demucs!')
 
-def analyze_demucs_separate(src, dst, opts):
+def analyze_demucs_separate(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
 
-    dst = next(iter(dst.values()))
-    dst = dst.parent.parent
+    stems = dst.values()
+    stem  = next(iter(stems))
 
-    args = ['-n', opts.model, '-o', str(dst), '--filename', '{stem}.{ext}', str(src)]
+    src = str(src)                # type: ignore
+    dst = str(stem.parent.parent) # type: ignore
+
+    args = ['-n', opts.model, '-o', dst, '--filename', '{stem}.{ext}', src]
 
     if not opts.quiet:
         click.echo(f'Executing demucs with args \"{" ".join(args)}\"')
 
     demucs.separate.main(args)
 
-def analyze_demucs_api(src, dst, opts):
+def analyze_demucs_api(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
 
     def callback(args):
 
@@ -89,7 +96,7 @@ def analyze_demucs_api(src, dst, opts):
         dst[stem].parent.mkdir(parents=True, exist_ok=True)
         demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
 
-def analyze(file, data, opts):
+def analyze(file: Path, data: Path, opts: RemucsOptions):
 
     suffix = file.suffix
     model  = opts.model

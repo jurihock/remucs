@@ -11,7 +11,7 @@ from remucs.options import RemucsOptions
 from remucs.analysis import analyze
 from remucs.synthesis import synthesize
 
-def remucs(file: Union[PurePath, str], data: Union[PurePath, str] = '~', opts: Union[RemucsOptions, None] = None):
+def remucs(file: Union[str, PurePath], data: Union[str, PurePath] = '~', opts: Union[RemucsOptions, None] = None):
 
     file = pathlib.Path(file)
 

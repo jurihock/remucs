@@ -1,3 +1,6 @@
+from pathlib import Path
+from numpy.typing import ArrayLike, NDArray
+
 import click
 import numpy
 import soundfile
@@ -5,11 +8,12 @@ import stftpitchshift
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
+from remucs.options import RemucsOptions
 
-def stereo_balance_weights(balance):
+def stereo_balance_weights(balance: ArrayLike) -> NDArray:
 
     if balance is None:
-        balance = numpy.zeros(len(STEMS))
+        balance = numpy.zeros(len(STEMS)) # type: ignore
 
     x = numpy.atleast_1d(balance).ravel()
     y = numpy.zeros(len(STEMS))
@@ -19,10 +23,10 @@ def stereo_balance_weights(balance):
 
     return numpy.clip(y[..., None, None] * [-1, +1] + 1, 0, 1)
 
-def stereo_gain_weights(gain):
+def stereo_gain_weights(gain: ArrayLike) -> NDArray:
 
     if gain is None:
-        gain = numpy.ones(len(STEMS))
+        gain = numpy.ones(len(STEMS)) # type: ignore
 
     x = numpy.atleast_1d(gain).ravel()
     y = numpy.ones(len(STEMS))
@@ -32,7 +36,12 @@ def stereo_gain_weights(gain):
 
     return numpy.clip(y[..., None, None], -10, +10)
 
-def shiftpitch(x, *, samplerate, factor, quefrency, framesize, hopsize, normalize=True):
+def shiftpitch(x: ArrayLike, *, samplerate: int,
+                                factor: float,
+                                quefrency: float,
+                                framesize: int,
+                                hopsize: int,
+                                normalize: bool = True) -> NDArray:
 
     x = numpy.atleast_2d(x)
     y = numpy.zeros_like(x)
@@ -47,13 +56,13 @@ def shiftpitch(x, *, samplerate, factor, quefrency, framesize, hopsize, normaliz
 
         y[:, i] = pitchshifter.shiftpitch(
             x[:, i],
-            factors=factor,
-            quefrency=quefrency,
+            factors=factor,          # type: ignore
+            quefrency=quefrency,     # type: ignore
             normalization=normalize)
 
     return y
 
-def synthesize(file, data, opts):
+def synthesize(file: Path, data: Path, opts: RemucsOptions):
 
     suffix = file.suffix
     model  = opts.model
