@@ -5,6 +5,7 @@ import click
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
+from remucs.options import RemucsOptions
 from remucs.remucs import remucs
 from remucs.utils import cent, semitone
 
@@ -55,12 +56,21 @@ def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
 
     try:
 
-        balance = [float(_) for _ in bala.split(',')]
-        gain    = [float(_) for _ in gain.split(',')]
-        pitch   = semitone(pitch) * cent(pitch)
+        bala  = [float(_) for _ in bala.split(',')]
+        gain  = [float(_) for _ in gain.split(',')]
+        pitch = semitone(pitch) * cent(pitch)
+
+        opts = RemucsOptions(
+            quiet=quiet,
+            fine=fine,
+            norm=norm,
+            mono=mono,
+            bala=bala,
+            gain=gain,
+            pitch=pitch)
 
         for file in list(set(files)):
-            remucs(file, fine=fine, norm=norm, mono=mono, balance=balance, gain=gain, pitch=pitch, data=data, quiet=quiet)
+            remucs(file, data, opts)
 
     except Exception as error:
 

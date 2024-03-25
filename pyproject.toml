@@ -78,6 +78,7 @@ exclude-protected = ["_load_audio"] # demucs.api.Separator._load_audio
 
 [tool.pylint."messages control"]
 disable = [
+  "missing-class-docstring",
   "missing-function-docstring",
   "missing-module-docstring",
 ]

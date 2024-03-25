@@ -1,13 +1,17 @@
+from pathlib import PurePath
+from typing import Union
+
 import pathlib
 
 import click
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
+from remucs.options import RemucsOptions
 from remucs.analysis import analyze
 from remucs.synthesis import synthesize
 
-def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None, pitch=1.0, data='~', quiet=True):
+def remucs(file: Union[PurePath, str], data: Union[PurePath, str] = '~', opts: Union[RemucsOptions, None] = None):
 
     file = pathlib.Path(file)
 
@@ -21,7 +25,9 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None,
         raise FileNotFoundError(
             f'The specified data path "{data}" does not exist!')
 
-    if not quiet:
+    opts = opts or RemucsOptions()
+
+    if not opts.quiet:
         click.echo(f'Processing {file.resolve()}')
 
     data = data / REMUCS / file.stem
@@ -30,7 +36,5 @@ def remucs(file, *, fine=False, norm=False, mono=False, balance=None, gain=None,
     src = file
     dst = file.with_suffix(REMUCS + file.suffix)
 
-    model = MODELS[fine]
-
-    analyze(src, data, model=model, quiet=quiet)
-    synthesize(dst, data, model=model, norm=norm, mono=mono, balance=balance, gain=gain, pitch=pitch, quiet=quiet)
+    analyze(src, data, opts)
+    synthesize(dst, data, opts)

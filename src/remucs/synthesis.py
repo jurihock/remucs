@@ -58,18 +58,24 @@ def shiftpitch(x, *, samplerate, factor, quefrency):
 
     return y
 
-def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=None, gain=None, pitch=1.0, quiet=True):
+def synthesize(file, data, opts):
 
     suffix = file.suffix
+    model  = opts.model
 
     src = [data / model / (stem + suffix) for stem in sorted(STEMS)]
     dst = file
 
-    if not quiet:
-        click.echo(f'Synthesizing {dst.resolve()}')
+    norm = opts.norm
+    mono = opts.mono
 
-    balance = stereo_balance_weights(balance)
-    gain    = stereo_gain_weights(gain)
+    bala = stereo_balance_weights(opts.bala)
+    gain = stereo_gain_weights(opts.gain)
+
+    pitch = opts.pitch
+
+    if not opts.quiet:
+        click.echo(f'Synthesizing {dst.resolve()}')
 
     x, sr = zip(*[soundfile.read(stem) for stem in src])
 
@@ -80,7 +86,7 @@ def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=
 
     if pitch and pitch > 0 and pitch != 1:
 
-        if not quiet:
+        if not opts.quiet:
             click.echo(f'Applying pitch shifting by factor {pitch}')
 
         stems       = [STEMS.index(stem) for stem in ['bass', 'other', 'vocals']]
@@ -90,11 +96,11 @@ def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=
         for i, stem in enumerate(stems):
             x[stem] = shiftpitch(x[stem], samplerate=sr, factor=factors[i], quefrency=quefrencies[i])
 
-    if not quiet:
+    if not opts.quiet:
         if mono:
             click.echo('Converting input to mono')
-        if not numpy.all(numpy.equal(numpy.unique(balance), 1)):
-            click.echo(f'Applying balance weights {balance.tolist()}')
+        if not numpy.all(numpy.equal(numpy.unique(bala), 1)):
+            click.echo(f'Applying balance weights {bala.tolist()}')
         if not numpy.all(numpy.equal(numpy.unique(gain), 1)):
             click.echo(f'Applying gain weights {gain.tolist()}')
         if norm:
@@ -104,7 +110,7 @@ def synthesize(file, data, *, model='htdemucs', norm=False, mono=False, balance=
         x = numpy.mean(x, axis=-1)
         x = numpy.repeat(x[..., None], 2, axis=-1)
 
-    y = numpy.sum(x * balance * gain, axis=0)
+    y = numpy.sum(x * bala * gain, axis=0)
 
     if norm:
         y /= numpy.max(numpy.abs(y)) or 1

@@ -26,19 +26,19 @@ except ModuleNotFoundError:
 if not DEMUCS:
     warnings.warn('In order to use remucs, you also need to install demucs!')
 
-def analyze_demucs_separate(model, src, dst, quiet):
+def analyze_demucs_separate(src, dst, opts):
 
     dst = next(iter(dst.values()))
     dst = dst.parent.parent
 
-    args = ['-n', model, '-o', str(dst), '--filename', '{stem}.{ext}', str(src)]
+    args = ['-n', opts.model, '-o', str(dst), '--filename', '{stem}.{ext}', str(src)]
 
-    if not quiet:
+    if not opts.quiet:
         click.echo(f'Executing demucs with args \"{" ".join(args)}\"')
 
     demucs.separate.main(args)
 
-def analyze_demucs_api(model, src, dst, quiet):
+def analyze_demucs_api(src, dst, opts):
 
     def callback(args):
 
@@ -60,10 +60,10 @@ def analyze_demucs_api(model, src, dst, quiet):
             prog.update(m)
 
     progress  = tqdm.tqdm(total=100) \
-                if not quiet else None
+                if not opts.quiet else None
 
     separator = demucs.api.Separator(
-        model=model,
+        model=opts.model,
         callback=callback,
         callback_arg={'progress': progress})
 
@@ -83,25 +83,19 @@ def analyze_demucs_api(model, src, dst, quiet):
 
     for stem, samples in separated.items():
 
-        if not quiet:
+        if not opts.quiet:
             click.echo(f'Writing {dst[stem].resolve()}')
 
         dst[stem].parent.mkdir(parents=True, exist_ok=True)
         demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
 
-def analyze(file, data, *, model='htdemucs', quiet=True):
+def analyze(file, data, opts):
 
     suffix = file.suffix
+    model  = opts.model
 
     src = file
     dst = {stem: data / model / (stem + suffix) for stem in STEMS}
-
-    model = model.lower()
-
-    if model not in MODELS:
-        raise ValueError(
-            f'Invalid model name "{model}"! ' +
-            f'Valid model names are: {", ".join(MODELS)}.')
 
     check = data / (DIGEST + suffix)
     hash0 = check.read_text().strip() if check.exists() else None
@@ -113,7 +107,7 @@ def analyze(file, data, *, model='htdemucs', quiet=True):
 
         for stem in data.glob(os.path.join('**', '*') + suffix):
 
-            if not quiet:
+            if not opts.quiet:
                 click.echo(f'Dropping {stem.resolve()}')
 
             stem.unlink()
@@ -126,16 +120,16 @@ def analyze(file, data, *, model='htdemucs', quiet=True):
     if complete:
         return
 
-    if not quiet:
+    if not opts.quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
     if DEMUCS == 'demucs.separate':
 
-        analyze_demucs_separate(model, src, dst, quiet)
+        analyze_demucs_separate(src, dst, opts)
 
     elif DEMUCS == 'demucs.api':
 
-        analyze_demucs_api(model, src, dst, quiet)
+        analyze_demucs_api(src, dst, opts)
 
     else:
 
