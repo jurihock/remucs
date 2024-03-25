@@ -73,7 +73,7 @@ def probe(session, **kwargs):
     sr = session['sr']
     f  = session['f']
 
-    remucs.remucs(src, data=data, **kwargs)
+    remucs.remucs(src, data, remucs.RemucsOptions(**kwargs))
     y = numpy.array(soundfile.read(dst)[0])
 
     db, hz = freqs(y, sr)
@@ -102,7 +102,7 @@ def test_setup(session):
     assert src.is_file()
     assert soundfile.info(src).samplerate == sr
 
-    remucs.remucs(src, data=data)
+    remucs.remucs(src, data)
     assert dst.is_file()
     assert soundfile.info(dst).samplerate == sr
 
@@ -180,7 +180,7 @@ def test_norm(session):
 
 def test_balance_left(session):
 
-    db = probe(session, balance=[0, 0, -1, 0])
+    db = probe(session, bala=[0, 0, -1, 0])
     print('y balance left', db[0], db[1])
 
     assert issame(db[0, 0],  0)
@@ -190,7 +190,7 @@ def test_balance_left(session):
 
 def test_balance_right(session):
 
-    db = probe(session, balance=[0, 0, +1, 0])
+    db = probe(session, bala=[0, 0, +1, 0])
     print('y balance right', db[0], db[1])
 
     assert isless(db[0, 0], -40)
