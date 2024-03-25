@@ -32,16 +32,11 @@ def stereo_gain_weights(gain):
 
     return numpy.clip(y[..., None, None], -10, +10)
 
-def shiftpitch(x, *, samplerate, factor, quefrency):
+def shiftpitch(x, *, samplerate, factor, quefrency, framesize, hopsize, normalize=True):
 
     x = numpy.atleast_2d(x)
     y = numpy.zeros_like(x)
     assert len(x.shape) == 2 and x.shape[-1] == 2
-
-    framesize = 4 * 1024
-    overlap   = 4
-    hopsize   = framesize // overlap
-    normalize = True
 
     pitchshifter = stftpitchshift.StftPitchShift(
         framesize=framesize,
@@ -91,10 +86,17 @@ def synthesize(file, data, opts):
 
         stems       = [STEMS.index(stem) for stem in ['bass', 'other', 'vocals']]
         factors     = [pitch] * len(stems)
-        quefrencies = [0, 0, 1e-3]
+        quefrencies = [0, 0, opts.quefrency]
+        framesize   = opts.framesize
+        hopsize     = opts.hopsize
 
         for i, stem in enumerate(stems):
-            x[stem] = shiftpitch(x[stem], samplerate=sr, factor=factors[i], quefrency=quefrencies[i])
+            x[stem] = shiftpitch(x[stem],
+                samplerate=sr,
+                factor=factors[i],
+                quefrency=quefrencies[i],
+                framesize=framesize,
+                hopsize=hopsize)
 
     if not opts.quiet:
         if mono:

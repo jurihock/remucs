@@ -72,6 +72,7 @@ addopts = ["--capture=tee-sys"]
 
 [tool.pylint]
 max-args = 10
+max-attributes = 10
 max-locals = 42
 max-line-length = 200
 exclude-protected = ["_load_audio"] # demucs.api.Separator._load_audio
