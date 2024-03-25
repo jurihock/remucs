@@ -1,5 +1,5 @@
 [project]
-version = "0.3"
+version = "0.4"
 name = "remucs"
 description = "Demucs wrapper for remixing audio files with additional customizations"
 authors = [{name = "Juergen Hock", email = "juergen.hock@jurihock.de"}]
