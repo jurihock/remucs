@@ -23,13 +23,13 @@ class RemucsOptions:
     overlap: int = 4
 
     @property
-    def model(self):
+    def model(self) -> str:
         return MODELS[self.fine]
 
     @property
-    def framesize(self):
+    def framesize(self) -> int:
         return 1 << self.order
 
     @property
-    def hopsize(self):
+    def hopsize(self) -> int:
         return self.framesize // self.overlap
