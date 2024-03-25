@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List
 
+# pylint: disable=wildcard-import,unused-wildcard-import
+from remucs.common import *
+
 @dataclass
 class RemucsOptions:
 
@@ -10,8 +13,8 @@ class RemucsOptions:
     norm: bool = False
     mono: bool = False
 
-    bala: List[float] = field(default_factory=lambda: [0, 0, 0, 0])
-    gain: List[float] = field(default_factory=lambda: [1, 1, 1, 1])
+    bala: List[float] = field(default_factory=lambda: [0]*len(STEMS))
+    gain: List[float] = field(default_factory=lambda: [1]*len(STEMS))
 
     pitch:     float = 1
     quefrency: float = 1e-3
@@ -21,7 +24,7 @@ class RemucsOptions:
 
     @property
     def model(self):
-        return 'htdemucs_ft' if self.fine else 'htdemucs'
+        return MODELS[self.fine]
 
     @property
     def framesize(self):
