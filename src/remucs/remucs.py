@@ -1,4 +1,4 @@
-from pathlib import PurePath
+from os import PathLike
 from typing import Union
 
 import pathlib
@@ -10,7 +10,7 @@ from remucs.analysis import analyze
 from remucs.synthesis import synthesize
 
 
-def remucs(file: Union[str, PurePath], data: Union[str, PurePath] = '~', opts: Union[RemucsOptions, None] = None):
+def remucs(file: Union[str, PathLike], data: Union[str, PathLike] = '~', opts: Union[RemucsOptions, None] = None):
 
     file = pathlib.Path(file)
 

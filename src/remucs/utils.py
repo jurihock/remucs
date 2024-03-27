@@ -1,4 +1,4 @@
-from pathlib import PurePath
+from os import PathLike
 from typing import Union
 
 import hashlib
@@ -29,7 +29,7 @@ def kilo(value: str) -> int:
     return int(value)
 
 
-def filehash(file: Union[str, PurePath], digest: str) -> str:
+def filehash(file: Union[str, PathLike], digest: str) -> str:
 
     with open(file, 'rb') as stream:
         return hashlib.file_digest(stream, digest).hexdigest()
