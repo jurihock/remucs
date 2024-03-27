@@ -5,8 +5,6 @@ import pathlib
 
 import click
 
-# pylint: disable=wildcard-import,unused-wildcard-import
-from remucs.common import *
 from remucs.options import RemucsOptions
 from remucs.analysis import analyze
 from remucs.synthesis import synthesize
@@ -31,11 +29,11 @@ def remucs(file: Union[str, PurePath], data: Union[str, PurePath] = '~', opts: U
     if not opts.quiet:
         click.echo(f'Processing {file.resolve()}')
 
-    data = data / REMUCS / file.stem
+    data = data / opts.remucs / file.stem
     data.mkdir(parents=True, exist_ok=True)
 
     src = file
-    dst = file.with_suffix(REMUCS + file.suffix)
+    dst = file.with_suffix(opts.remucs + file.suffix)
 
     analyze(src, data, opts)
     synthesize(dst, data, opts)

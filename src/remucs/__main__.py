@@ -1,13 +1,16 @@
+import importlib.metadata
 import pathlib
 import traceback
 
 import click
 
-# pylint: disable=wildcard-import,unused-wildcard-import
-from remucs.common import *
 from remucs.options import RemucsOptions
 from remucs.remucs import remucs
 from remucs.utils import cent, semitone
+
+STEMS   = RemucsOptions().stems
+MODELS  = RemucsOptions().models
+VERSION = importlib.metadata.version('remucs')
 
 
 @click.command(

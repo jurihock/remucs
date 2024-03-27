@@ -8,8 +8,6 @@ import click
 import numpy
 import tqdm
 
-# pylint: disable=wildcard-import,unused-wildcard-import
-from remucs.common import *
 from remucs.options import RemucsOptions
 from remucs.utils import filehash
 
@@ -84,7 +82,7 @@ def analyze_demucs_api(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
     # Therefore, load the input file manually and clone the resulting tensor as suggested.
     original  = separator._load_audio(src).clone()
     separated = separator.separate_tensor(original, separator.samplerate)[-1]
-    assert sorted(separated.keys()) == sorted(STEMS)
+    assert sorted(separated.keys()) == sorted(opts.stems)
 
     if progress is not None:
         progress.update(numpy.clip(100 - progress.n, 0, 100))
@@ -105,11 +103,11 @@ def analyze(file: Path, data: Path, opts: RemucsOptions):
     model  = opts.model
 
     src = file
-    dst = {stem: data / model / (stem + suffix) for stem in STEMS}
+    dst = {stem: data / model / (stem + suffix) for stem in opts.stems}
 
-    check = data / (DIGEST + suffix)
+    check = data / (opts.digest + suffix)
     hash0 = check.read_text().strip() if check.exists() else None
-    hash1 = filehash(src, DIGEST).strip()
+    hash1 = filehash(src, opts.digest).strip()
 
     if hash0 != hash1:
 
@@ -124,7 +122,7 @@ def analyze(file: Path, data: Path, opts: RemucsOptions):
 
         check.write_text(hash1)
 
-    complete = list(set((data / model / (stem + suffix)).exists() for stem in STEMS))
+    complete = list(set((data / model / (stem + suffix)).exists() for stem in opts.stems))
     complete = complete[0] if len(complete) == 1 else False
 
     if complete:

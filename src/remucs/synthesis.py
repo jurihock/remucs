@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 from numpy.typing import ArrayLike, NDArray
 
 import click
@@ -6,18 +7,16 @@ import numpy
 import soundfile
 import stftpitchshift
 
-# pylint: disable=wildcard-import,unused-wildcard-import
-from remucs.common import *
 from remucs.options import RemucsOptions
 
 
-def stereo_balance_weights(balance: ArrayLike) -> NDArray:
+def stereo_balance_weights(balance: Union[ArrayLike, None], size: int) -> NDArray:
 
     if balance is None:
-        balance = numpy.zeros(len(STEMS))  # type: ignore
+        balance = numpy.zeros(size)
 
     x = numpy.atleast_1d(balance).ravel()
-    y = numpy.zeros(len(STEMS))
+    y = numpy.zeros(size)
     n = min(len(x), len(y))
 
     y[:n] = x[:n]
@@ -25,13 +24,13 @@ def stereo_balance_weights(balance: ArrayLike) -> NDArray:
     return numpy.clip(y[..., None, None] * [-1, +1] + 1, 0, 1)
 
 
-def stereo_gain_weights(gain: ArrayLike) -> NDArray:
+def stereo_gain_weights(gain: Union[ArrayLike, None], size: int) -> NDArray:
 
     if gain is None:
-        gain = numpy.ones(len(STEMS))  # type: ignore
+        gain = numpy.ones(size)
 
     x = numpy.atleast_1d(gain).ravel()
-    y = numpy.ones(len(STEMS))
+    y = numpy.ones(size)
     n = min(len(x), len(y))
 
     y[:n] = x[:n]
@@ -70,14 +69,14 @@ def synthesize(file: Path, data: Path, opts: RemucsOptions):
     suffix = file.suffix
     model  = opts.model
 
-    src = [data / model / (stem + suffix) for stem in sorted(STEMS)]
+    src = [data / model / (stem + suffix) for stem in sorted(opts.stems)]
     dst = file
 
     norm = opts.norm
     mono = opts.mono
 
-    bala = stereo_balance_weights(opts.bala)
-    gain = stereo_gain_weights(opts.gain)
+    bala = stereo_balance_weights(opts.bala, len(opts.stems))
+    gain = stereo_gain_weights(opts.gain, len(opts.stems))
 
     pitch = opts.pitch
 
@@ -96,7 +95,7 @@ def synthesize(file: Path, data: Path, opts: RemucsOptions):
         if not opts.quiet:
             click.echo(f'Applying pitch shifting by factor {pitch}')
 
-        stems       = [STEMS.index(stem) for stem in ['bass', 'other', 'vocals']]
+        stems       = [opts.stems.index(stem) for stem in ['bass', 'other', 'vocals']]
         factors     = [pitch] * len(stems)
         quefrencies = [0, 0, opts.quefrency]
         framesizes  = [opts.framesize] * len(stems)
