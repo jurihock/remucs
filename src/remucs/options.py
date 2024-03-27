@@ -4,6 +4,7 @@ from typing import List
 # pylint: disable=wildcard-import,unused-wildcard-import
 from remucs.common import *
 
+
 @dataclass
 class RemucsOptions:
 

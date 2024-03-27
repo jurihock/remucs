@@ -10,10 +10,11 @@ import stftpitchshift
 from remucs.common import *
 from remucs.options import RemucsOptions
 
+
 def stereo_balance_weights(balance: ArrayLike) -> NDArray:
 
     if balance is None:
-        balance = numpy.zeros(len(STEMS)) # type: ignore
+        balance = numpy.zeros(len(STEMS))  # type: ignore
 
     x = numpy.atleast_1d(balance).ravel()
     y = numpy.zeros(len(STEMS))
@@ -23,10 +24,11 @@ def stereo_balance_weights(balance: ArrayLike) -> NDArray:
 
     return numpy.clip(y[..., None, None] * [-1, +1] + 1, 0, 1)
 
+
 def stereo_gain_weights(gain: ArrayLike) -> NDArray:
 
     if gain is None:
-        gain = numpy.ones(len(STEMS)) # type: ignore
+        gain = numpy.ones(len(STEMS))  # type: ignore
 
     x = numpy.atleast_1d(gain).ravel()
     y = numpy.ones(len(STEMS))
@@ -35,6 +37,7 @@ def stereo_gain_weights(gain: ArrayLike) -> NDArray:
     y[:n] = x[:n]
 
     return numpy.clip(y[..., None, None], -10, +10)
+
 
 def shiftpitch(x: ArrayLike, *, samplerate: int,
                                 factor: float,
@@ -54,13 +57,13 @@ def shiftpitch(x: ArrayLike, *, samplerate: int,
 
     for i in range(x.shape[-1]):
 
-        y[:, i] = pitchshifter.shiftpitch(
-            x[:, i],
-            factors=factor,          # type: ignore
-            quefrency=quefrency,     # type: ignore
+        y[:, i] = pitchshifter.shiftpitch(x[:, i],
+            factors=factor,           # type: ignore
+            quefrency=quefrency,      # type: ignore
             normalization=normalize)
 
     return y
+
 
 def synthesize(file: Path, data: Path, opts: RemucsOptions):
 

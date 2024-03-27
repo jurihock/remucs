@@ -4,3 +4,5 @@ __version__ = importlib.metadata.version('remucs')
 
 from remucs.remucs import remucs
 from remucs.options import RemucsOptions
+
+__all__ = ['remucs', 'RemucsOptions']

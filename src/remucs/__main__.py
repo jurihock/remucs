@@ -9,7 +9,9 @@ from remucs.options import RemucsOptions
 from remucs.remucs import remucs
 from remucs.utils import cent, semitone
 
-@click.command(                context_settings={'help_option_names': ['-h', '--help']},
+
+@click.command(
+                               context_settings={'help_option_names': ['-h', '--help']},
                                no_args_is_help=True)
 @click.argument('files',
                                nargs=-1,
@@ -78,6 +80,7 @@ def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
 
         raise click.ClickException(str(error))
 
+
 if __name__ == '__main__':
 
-    main() # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

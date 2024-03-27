@@ -52,3 +52,26 @@ jobs:
     - name: Check
       run: |
         pyright src/remucs
+
+  check-flake8:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Python
+      uses: actions/setup-python@master
+      with:
+        python-version: ${{ env.PYTHON }}
+
+    - name: Install
+      run: |
+        pip install flake8
+        pip install .
+
+    - name: Check
+      run: |
+        flake8 src/remucs

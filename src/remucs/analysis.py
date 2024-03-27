@@ -16,13 +16,13 @@ from remucs.utils import filehash
 DEMUCS = None
 
 try:
-    import demucs.separate # >= 4.0
+    import demucs.separate  # >= 4.0
     DEMUCS = 'demucs.separate'
 except ModuleNotFoundError:
     pass
 
 try:
-    import demucs.api # >= 4.1
+    import demucs.api  # >= 4.1
     DEMUCS = 'demucs.api'
 except ModuleNotFoundError:
     pass
@@ -30,13 +30,14 @@ except ModuleNotFoundError:
 if not DEMUCS:
     warnings.warn('In order to use remucs, you also need to install demucs!')
 
+
 def analyze_demucs_separate(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
 
     stems = dst.values()
     stem  = next(iter(stems))
 
-    src = str(src)                # type: ignore
-    dst = str(stem.parent.parent) # type: ignore
+    src = str(src)                 # type: ignore
+    dst = str(stem.parent.parent)  # type: ignore
 
     args = ['-n', opts.model, '-o', dst, '--filename', '{stem}.{ext}', src]
 
@@ -44,6 +45,7 @@ def analyze_demucs_separate(src: Path, dst: Dict[str, Path], opts: RemucsOptions
         click.echo(f'Executing demucs with args \"{" ".join(args)}\"')
 
     demucs.separate.main(args)
+
 
 def analyze_demucs_api(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
 
@@ -95,6 +97,7 @@ def analyze_demucs_api(src: Path, dst: Dict[str, Path], opts: RemucsOptions):
 
         dst[stem].parent.mkdir(parents=True, exist_ok=True)
         demucs.api.save_audio(samples, dst[stem], samplerate=separator.samplerate)
+
 
 def analyze(file: Path, data: Path, opts: RemucsOptions):
 
