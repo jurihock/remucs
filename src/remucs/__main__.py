@@ -61,8 +61,8 @@ def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
 
     try:
 
-        bala  = [float(_) for _ in bala.split(',')]
-        gain  = [float(_) for _ in gain.split(',')]
+        bala  = list(map(float, bala.split(',')))
+        gain  = list(map(float, gain.split(',')))
         pitch = semitone(pitch) * cent(pitch)
 
         opts = RemucsOptions(
