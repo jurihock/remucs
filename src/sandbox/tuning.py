@@ -4,6 +4,7 @@
 import matplotlib.pyplot as plot
 import numpy as np
 import numpy.lib.stride_tricks as tricks
+import scipy.signal
 import soundfile
 
 from qdft import Chroma
@@ -43,7 +44,7 @@ latency = int(np.max(chroma.qdft.periods[0] - chroma.qdft.offsets))
 print(f'max. qdft latency {latency}')
 
 print(f'old shape {chromagram.shape}')
-chromagram = chromagram[latency:]
+chromagram = chromagram[latency:-samplerate]
 print(f'new shape {chromagram.shape}')
 
 cp0 = chroma.concertpitch
@@ -62,6 +63,9 @@ for n, m in zip(i, j):
 
     cp1[n] = (f[n, m] * 2**(s/12)) / (2**(s/6))
     cp1[n] = cp1[n-1] if np.isnan(cp1[n]) else cp1[n]
+
+kernel = int(100e-3 * samplerate)
+cp1 = scipy.signal.savgol_filter(cp1, kernel, polyorder=1, mode='mirror')
 
 # TODO better estimation precision
 stats = np.ceil([
