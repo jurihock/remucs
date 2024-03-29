@@ -19,10 +19,10 @@ samples = np.mean(samples, axis=-1) \
           if len(np.shape(samples)) > 1 \
           else np.asarray(samples)
 
-print(f'samples {len(samples)} {len(samples)/samplerate}s')
+print(f'old samples {len(samples)} {len(samples)/samplerate}s')
 length = int(np.ceil(samples.size / samplerate) * samplerate)
 samples.resize(length)
-print(f'samples {len(samples)} {len(samples)/samplerate}s')
+print(f'new samples {len(samples)} {len(samples)/samplerate}s')
 
 chunks  = tricks.sliding_window_view(samples, samplerate)[::samplerate]
 chroma  = Chroma(samplerate, feature='hz')
@@ -40,7 +40,7 @@ for i, chunk in enumerate(chunks):
 
 # TODO chroma.qdft.latencies in the next release
 latency = int(np.max(chroma.qdft.periods[0] - chroma.qdft.offsets))
-print(f'latency {latency}')
+print(f'max. qdft latency {latency}')
 
 print(f'old shape {chromagram.shape}')
 chromagram = chromagram[latency:]
