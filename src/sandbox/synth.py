@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 from os import PathLike
 from pathlib import Path
 from subprocess import run
