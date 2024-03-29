@@ -12,28 +12,6 @@ from pytuning.tuning_tables import create_timidity_tuning
 import click
 
 
-@click.command(
-                               context_settings={'help_option_names': ['-h', '--help']},
-                               no_args_is_help=True)
-@click.argument('file',        nargs=1,
-                               required=True,
-                               type=click.Path(exists=False, file_okay=True, dir_okay=False, path_type=Path))
-@click.option('-a', '--a4',
-                               default=440,
-                               show_default=True,
-                               help='Tuning frequency.')
-@click.option('-b', '--bpm',
-                               default=120,
-                               show_default=True,
-                               help='Beats per minute.')
-@click.option('-g', '--prog',
-                               default=0,
-                               show_default=True,
-                               help='MIDI program number.')
-@click.option('-p', '--play',
-                               default=False,
-                               is_flag=True,
-                               help='Play generated file.')
 def synth(file: Union[str, PathLike], *, a4:   int  = 440,
                                          bpm:  int  = 120,
                                          prog: int  = 0,
@@ -59,7 +37,6 @@ def synth(file: Union[str, PathLike], *, a4:   int  = 440,
         track.append(Message('note_off', note=note, velocity=100, time=240))
 
     track.append(MetaMessage('end_of_track'))
-
     midi.save(file.with_suffix('.mid'))
 
     scale  = create_edo_scale(12)
@@ -84,6 +61,33 @@ def synth(file: Union[str, PathLike], *, a4:   int  = 440,
         run(['play', file], check=True)
 
 
+@click.command(
+                               context_settings={'help_option_names': ['-h', '--help']},
+                               no_args_is_help=True)
+@click.argument('file',        nargs=1,
+                               required=True,
+                               type=click.Path(exists=False, file_okay=True, dir_okay=False, path_type=Path))
+@click.option('-a', '--a4',
+                               default=440,
+                               show_default=True,
+                               help='Tuning frequency.')
+@click.option('-b', '--bpm',
+                               default=120,
+                               show_default=True,
+                               help='Beats per minute.')
+@click.option('-p', '--prog',
+                               default=0,
+                               show_default=True,
+                               help='MIDI program number.')
+@click.option('-y', '--play',
+                               default=False,
+                               is_flag=True,
+                               help='Play generated file.')
+def main(file, a4, bpm, prog, play):
+
+    synth(file, a4=a4, bpm=bpm, prog=prog, play=play)
+
+
 if __name__ == '__main__':
 
-    synth()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter
