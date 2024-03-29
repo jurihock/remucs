@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
+
+# pylint: disable=import-error
 from test_utils import find, freqs, isless, issame, time, wave
 
 import numpy

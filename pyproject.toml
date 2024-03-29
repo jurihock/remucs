@@ -67,7 +67,7 @@ where = ["src"]
 include = ["remucs"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["src/tests"]
 addopts = ["--capture=tee-sys"]
 
 [tool.pylint]

@@ -28,7 +28,7 @@ jobs:
 
     - name: Check
       run: |
-        pylint src/remucs
+        pylint src
 
   check-pyright:
 
@@ -51,7 +51,7 @@ jobs:
 
     - name: Check
       run: |
-        pyright src/remucs
+        pyright src
 
   check-flake8:
 
@@ -74,4 +74,4 @@ jobs:
 
     - name: Check
       run: |
-        flake8 src/remucs
+        flake8 src
