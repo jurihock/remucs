@@ -12,31 +12,34 @@ from pytuning.tuning_tables import create_timidity_tuning
 import click
 
 
-def synth(file: Union[str, PathLike], *, a4:   int  = 440,
-                                         bpm:  int  = 120,
-                                         prog: int  = 0,
-                                         play: bool = False):
+def synth(file: Union[str, PathLike], *, a4:      int   = 440,
+                                         bpm:     int   = 120,
+                                         tenuto:  float = 1,
+                                         program: int   = 0,
+                                         play:    bool  = False):
 
-    file = Path(file)
-
+    file  = Path(file)
     midi  = MidiFile()
     track = MidiTrack()
-
-    midi.tracks.append(track)
 
     track.append(MetaMessage('key_signature', key='C'))
     track.append(MetaMessage('time_signature', numerator=4, denominator=4))
     track.append(MetaMessage('set_tempo', tempo=bpm2tempo(bpm)))
-    track.append(Message('program_change', program=prog))
+    track.append(Message('program_change', program=program))
 
     notes = [60, 62, 64, 65, 67, 69, 71, 72, 67, 64, 60]
 
+    alpha = min(max(tenuto, 0), 1)
+    time0 = int(240 * (1 - alpha))
+    time1 = int(240 * alpha)
+
     for note in notes:
 
-        track.append(Message('note_on',  note=note, velocity=100, time=0))
-        track.append(Message('note_off', note=note, velocity=100, time=240))
+        track.append(Message('note_on',  note=note, velocity=100, time=time0))
+        track.append(Message('note_off', note=note, velocity=100, time=time1))
 
     track.append(MetaMessage('end_of_track'))
+    midi.tracks.append(track)
     midi.save(file.with_suffix('.mid'))
 
     scale  = create_edo_scale(12)
@@ -70,11 +73,15 @@ def synth(file: Union[str, PathLike], *, a4:   int  = 440,
 @click.option('-a', '--a4',
                                default=440,
                                show_default=True,
-                               help='Tuning frequency.')
+                               help='Tuning frequency in hertz.')
 @click.option('-b', '--bpm',
                                default=120,
                                show_default=True,
-                               help='Beats per minute.')
+                               help='Number of beats per minute.')
+@click.option('-t', '--ten',
+                               default=1.0,
+                               show_default=True,
+                               help='Amount of tenuto between 0 and 1.')
 @click.option('-p', '--prog',
                                default=0,
                                show_default=True,
@@ -83,9 +90,9 @@ def synth(file: Union[str, PathLike], *, a4:   int  = 440,
                                default=False,
                                is_flag=True,
                                help='Play generated file.')
-def main(file, a4, bpm, prog, play):
+def main(file, a4, bpm, ten, prog, play):
 
-    synth(file, a4=a4, bpm=bpm, prog=prog, play=play)
+    synth(file, a4=a4, bpm=bpm, tenuto=ten, program=prog, play=play)
 
 
 if __name__ == '__main__':
