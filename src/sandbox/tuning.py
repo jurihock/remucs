@@ -10,6 +10,8 @@ import soundfile
 from qdft import Chroma
 from synth import synth
 
+np.set_printoptions(suppress=True)
+
 
 def findpeaks(x, n):
 
@@ -28,7 +30,7 @@ def findpeaks(x, n):
     return j[..., :n] + 1
 
 
-def smooth(x, seconds, samplerate):
+def smooth_savgol(x, seconds, samplerate):
 
     return scipy.signal.savgol_filter(x,
         window_length=int(seconds * samplerate),
@@ -36,9 +38,20 @@ def smooth(x, seconds, samplerate):
         mode='mirror')
 
 
+def smooth_polyfit(x, degree):
+
+    i = np.arange(len(x))
+    p = np.polyfit(i, x, degree)
+    y = np.poly1d(p)(i)
+
+    print(f'poly degree {degree} coeffs {p}')
+
+    return y
+
+
 def main():
 
-    cp = 440
+    cp = 442
     test = f'test.{cp}.wav'
     synth(test, a4=cp)
 
@@ -83,10 +96,14 @@ def main():
 
     i = np.arange(len(chromagram))
     j = findpeaks(r, 3)
+    k = 1 # int(100e-3 * samplerate)
 
     for n, m in zip(i, j):
 
-        s = np.round(12 * np.log2(f[n, m] / cp1[n-1]))
+        e = np.median(np.roll(cp1, k)[:k]) \
+            if k > 1 else cp1[n-1]
+
+        s = np.round(12 * np.log2(f[n, m] / e))
 
         a = f[n, m]
         b = np.power(2, s / 12)
@@ -95,23 +112,27 @@ def main():
         cp1[n] = np.sum(a * b) / np.sum(c)
         cp1[n] = cp1[n-1] if np.isnan(cp1[n]) else cp1[n]
 
-    cp1 = smooth(cp1, 100e-3, samplerate)
+    # TODO try a lowpass instead
+    cp2 = smooth_savgol(cp1, 100e-3, samplerate)
+    cp3 = smooth_polyfit(cp2, 1)
 
     # TODO improve estimation precision
-    stats = np.round([
-        cp1[0],
-        cp1[-1],
-        np.mean(cp1),
-        np.median(cp1)
+    res = np.round([
+        cp3[0],
+        cp3[-1],
+        np.mean(cp3),
+        np.median(cp3)
     ])
 
-    print(f'fist {stats[0]} last {stats[1]} avg {stats[2]} med {stats[3]}')
+    print(f'fist {res[0]} last {res[1]} avg {res[2]} med {res[3]}')
 
     plot.figure(test)
     plot.plot(cp1)
+    plot.plot(cp2, '--')
+    plot.plot(cp3, '--')
     plot.show()
 
-    assert stats[-1] == cp
+    assert res[-1] == cp
 
 
 if __name__ == '__main__':
