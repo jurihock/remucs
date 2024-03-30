@@ -107,7 +107,7 @@ def main():
 
     i = np.arange(len(data))
     j = findpeaks(r, 3)
-    k = 1 # int(100e-3 * samplerate)
+    k = 1  # int(100e-3 * samplerate)
 
     for n, m in zip(i, j):
 
