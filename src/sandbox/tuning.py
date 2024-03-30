@@ -57,7 +57,7 @@ def main():
 
     cp = 440
     test = f'test.{cp}.wav'
-    synth(test, a4=cp)
+    synth(test, a4=cp, tenuto=1)
 
     samples, samplerate = soundfile.read(test)
 
