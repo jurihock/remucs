@@ -44,14 +44,14 @@ def smooth_polyfit(x, degree):
     p = np.polyfit(i, x, degree)
     y = np.poly1d(p)(i)
 
-    print(f'poly degree {degree} coeffs {p}')
+    print(f'polyfit degree {degree} coeffs {p}')
 
     return y
 
 
 def main():
 
-    cp = 442
+    cp = 440
     test = f'test.{cp}.wav'
     synth(test, a4=cp)
 
@@ -96,7 +96,7 @@ def main():
 
     i = np.arange(len(chromagram))
     j = findpeaks(r, 3)
-    k = 1 # int(100e-3 * samplerate)
+    k = 1  # int(100e-3 * samplerate)
 
     for n, m in zip(i, j):
 
