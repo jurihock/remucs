@@ -10,75 +10,110 @@ import soundfile
 from qdft import Chroma
 from synth import synth
 
-CP = 440
-test = f'test.{CP}.wav'
-synth(test, a4=CP)
 
-samples, samplerate = soundfile.read(test)
+def findpeaks(x, n):
 
-samples = np.mean(samples, axis=-1) \
-          if len(np.shape(samples)) > 1 \
-          else np.asarray(samples)
+    if n == 1:
+        return np.argmax(x, axis=-1)
 
-print(f'old samples {len(samples)} {len(samples)/samplerate}s')
-length = int(np.ceil(samples.size / samplerate) * samplerate)
-samples.resize(length)
-print(f'new samples {len(samples)} {len(samples)/samplerate}s')
+    a = x[..., 0:-3]
+    y = x[..., 1:-2]
+    b = x[..., 2:-1]
 
-chunks  = tricks.sliding_window_view(samples, samplerate)[::samplerate]
-chroma  = Chroma(samplerate, feature='hz')
+    i = (y > a) & (y > b)
+    j = np.argsort(y * i, axis=-1)[..., ::-1]
 
-chromagram = np.empty((0, chroma.size))
+    assert np.all(np.argmax(y, axis=-1) == j[..., 0])
 
-for i, chunk in enumerate(chunks):
+    return j[..., :n] + 1
 
-    if not i:
-        print('0%')
 
-    chromagram = np.vstack((chromagram, chroma.chroma(chunk)))
+def smooth(x, seconds, samplerate):
 
-    print(f'{int(100 * (i + 1) / len(chunks))}%')
+    return scipy.signal.savgol_filter(x,
+        window_length=int(seconds * samplerate),
+        polyorder=1,
+        mode='mirror')
 
-# TODO chroma.qdft.latencies in the next release
-latency = int(np.max(chroma.qdft.periods[0] - chroma.qdft.offsets))
-print(f'max. qdft latency {latency}')
 
-print(f'old shape {chromagram.shape}')
-chromagram = chromagram[latency:-samplerate]
-print(f'new shape {chromagram.shape}')
+def main():
 
-cp0 = chroma.concertpitch
-cp1 = np.full(len(chromagram), cp0, float)
+    cp = 440
+    test = f'test.{cp}.wav'
+    synth(test, a4=cp)
 
-r = np.real(chromagram)
-f = np.imag(chromagram)
+    samples, samplerate = soundfile.read(test)
 
-i = np.arange(len(chromagram))
-j = np.argmax(r, axis=-1)
+    samples = np.mean(samples, axis=-1) \
+              if len(np.shape(samples)) > 1 \
+              else np.asarray(samples)
 
-for n, m in zip(i, j):
+    print(f'old length {len(samples)} {len(samples)/samplerate}s')
+    length = int(np.ceil(samples.size / samplerate) * samplerate)
+    samples.resize(length)
+    print(f'new length {len(samples)} {len(samples)/samplerate}s')
 
-    # TODO peak picking
-    s = np.round(12 * np.log2(f[n, m] / cp1[n-1]))
+    chunks = tricks.sliding_window_view(samples, samplerate)[::samplerate]
+    chroma = Chroma(samplerate, decibel=False, feature='hz')
 
-    cp1[n] = (f[n, m] * 2**(s/12)) / (2**(s/6))
-    cp1[n] = cp1[n-1] if np.isnan(cp1[n]) else cp1[n]
+    chromagram = np.empty((0, chroma.size))
 
-kernel = int(100e-3 * samplerate)
-cp1 = scipy.signal.savgol_filter(cp1, kernel, polyorder=1, mode='mirror')
+    for i, chunk in enumerate(chunks):
 
-# TODO better estimation precision
-stats = np.ceil([
-    cp1[0],
-    cp1[-1],
-    np.mean(cp1),
-    np.median(cp1)
-])
+        if not i:
+            print('0%')
 
-print(f'fist {stats[0]} last {stats[1]} avg {stats[2]} med {stats[3]}')
+        chromagram = np.vstack((chromagram, chroma.chroma(chunk)))
 
-plot.figure(test)
-plot.plot(cp1)
-plot.show()
+        print(f'{int(100 * (i + 1) / len(chunks))}%')
 
-assert stats[-1] == CP
+    # TODO use chroma.qdft.latencies in the next qdft release
+    latency = int(np.max(chroma.qdft.periods[0] - chroma.qdft.offsets))
+    print(f'max. qdft latency {latency}')
+
+    print(f'old shape {chromagram.shape}')
+    chromagram = chromagram[latency:-samplerate]
+    print(f'new shape {chromagram.shape}')
+
+    cp0 = chroma.concertpitch
+    cp1 = np.full(len(chromagram), cp0, float)
+
+    r = np.real(chromagram)
+    f = np.imag(chromagram)
+
+    i = np.arange(len(chromagram))
+    j = findpeaks(r, 3)
+
+    for n, m in zip(i, j):
+
+        s = np.round(12 * np.log2(f[n, m] / cp1[n-1]))
+
+        a = f[n, m]
+        b = np.power(2, s / 12)
+        c = np.power(2, s / 6)
+
+        cp1[n] = np.sum(a * b) / np.sum(c)
+        cp1[n] = cp1[n-1] if np.isnan(cp1[n]) else cp1[n]
+
+    cp1 = smooth(cp1, 100e-3, samplerate)
+
+    # TODO improve estimation precision
+    stats = np.round([
+        cp1[0],
+        cp1[-1],
+        np.mean(cp1),
+        np.median(cp1)
+    ])
+
+    print(f'fist {stats[0]} last {stats[1]} avg {stats[2]} med {stats[3]}')
+
+    plot.figure(test)
+    plot.plot(cp1)
+    plot.show()
+
+    assert stats[-1] == cp
+
+
+if __name__ == '__main__':
+
+    main()
