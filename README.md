@@ -20,6 +20,8 @@ Options:
                         e.g. "0,0.5,1,-1". [default: 0,0,0,0]
   -g, --gain TEXT       Gain of individual stems "bass,drums,other,vocals",
                         e.g. "2,1,0.5,0". [default: 1,1,1,1]
+  -a, --a4 INTEGER      Target tuning reference frequency, to automatically
+                        estimate the pitch shifting factor (experimental).
   -p, --pitch TEXT      Pitch shifting factor in semitones followed by cents,
                         e.g -12 or +12 or +3-50. [default: 0]
   -d, --data DIRECTORY  Directory where to store the intermediate files.
