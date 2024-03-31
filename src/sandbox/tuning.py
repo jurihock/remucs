@@ -46,7 +46,9 @@ def main():
     histweights = weights / np.max(hist[0])
     plotweights = weights * np.ptp(cp2) / np.max(weights) + np.min(cp2)
 
-    print(f'a4 orig {cp0} est {cp1}')
+    cents = round(1200 * np.log2(cp1 / cp0))
+
+    print(f'a4 orig {cp0} est {cp1} cents {cents}')
 
     plot.figure(f'{test} hist')
     plot.hist(values, bins=edges, weights=histweights)
