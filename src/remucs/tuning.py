@@ -8,7 +8,6 @@ import soundfile
 
 from qdft import QDFT
 from qdft.fafe import QFAFE
-from qdft.scale import Scale
 
 from remucs.options import RemucsOptions
 
@@ -38,9 +37,10 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     x, sr = soundfile.read(src)
     x     = numpy.atleast_2d(x).mean(axis=-1)
 
-    scale      = Scale(440)
-    bandwidth  = (scale.frequency('A0'), scale.frequency('C#8'))
-    resolution = 12*4
+    reference  = 440
+    bandwidth  = (100, 3000)
+    resolution = 1200 // 25
+    numpeaks   = 3
 
     qdft = QDFT(samplerate=sr, bandwidth=bandwidth, resolution=resolution)
     fafe = QFAFE(qdft)
@@ -51,15 +51,21 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     oldsize = len(x)
     newsize = int(numpy.ceil((latency + oldsize) / sr) * sr)
 
-    assert oldsize > latency
+    if oldsize < latency:
+
+        s0 = int(numpy.round(oldsize/sr))
+        s1 = int(numpy.ceil(latency/sr))
+
+        raise ValueError(
+            f'The audio file \"{src}\" length of {s0} seconds is too short, ' +
+            f'and needs to be at least {s1} seconds! ' +
+            'Otherwise reduce the analysis resolution.')
+
     x.resize(newsize)
 
     batches   = numpy.arange(len(x)).reshape((-1, sr))
-    estimates = numpy.full(len(x), 440, float)
+    estimates = numpy.zeros(len(x), float)
     weights   = numpy.zeros(len(x), float)
-
-    numpeaks = 3
-    roi      = [latency, oldsize - 1]
 
     for batch in batches:
 
@@ -67,28 +73,18 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
         magns = numpy.abs(dfts)
         freqs = fafe.hz(dfts)
 
-        i = numpy.arange(len(batch))
+        i = numpy.arange(len(batch))[..., None]
         j = findpeaks(magns, numpeaks)
 
-        for n, m in zip(i, j):
+        magns = magns[i, j]
+        freqs = freqs[i, j]
 
-            if (batch[n] < roi[0]) or (roi[1] < batch[n]):
-                continue
+        a = numpy.round(12 * numpy.log2(freqs / reference))
+        b = numpy.power(2, a / 12)
+        c = numpy.power(2, a / 6)
 
-            estimate0 = estimates[batch[n] - 1]
-
-            a = numpy.round(12 * numpy.log2(freqs[n, m] / estimate0))
-            b = numpy.power(2, a / 12)
-            c = numpy.power(2, a / 6)
-
-            estimate1 = numpy.sum(freqs[n, m] * b) / numpy.sum(c)
-
-            if numpy.isfinite(estimate1):
-                estimates[batch[n]] = estimate1
-                weights[batch[n]]   = numpy.prod(magns[n, m])
-            else:
-                estimates[batch[n]] = estimate0
-                weights[batch[n]]   = 0
+        estimates[batch] = numpy.sum(freqs * b, axis=-1) / numpy.sum(c, axis=-1)
+        weights[batch]   = numpy.prod(magns, axis=-1)
 
     estimates = estimates[latency:latency+oldsize]
     weights   = weights[latency:latency+oldsize]
