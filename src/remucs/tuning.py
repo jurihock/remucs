@@ -6,6 +6,7 @@ import click
 import numpy
 import resampy
 import soundfile
+import tqdm
 
 from qdft import QDFT
 from qdft.fafe import QFAFE
@@ -57,6 +58,9 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     if not opts.quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
+    progress  = tqdm.tqdm(total=100) \
+                if not opts.quiet else None
+
     samplerate    = 8000
     x, samplerate = resample(src, samplerate)
 
@@ -91,7 +95,7 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     estimates = numpy.zeros(len(x), float)
     weights   = numpy.zeros(len(x), float)
 
-    for batch in batches:
+    for index, batch in enumerate(batches):
 
         dfts  = qdft.qdft(x[batch])
         magns = numpy.abs(dfts)
@@ -110,11 +114,23 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
         estimates[batch] = numpy.sum(freqs * b, axis=-1) / numpy.sum(c, axis=-1)
         weights[batch]   = numpy.prod(magns, axis=-1)
 
+        if progress is not None:
+
+            q = index / len(batches)
+            n = numpy.clip(numpy.ceil(100 * q), 0, 100)
+            m = numpy.clip(n - progress.n, 0, 100 - progress.n)
+
+            progress.update(m)
+
     estimates = estimates[latency:latency+oldsize]
     weights   = weights[latency:latency+oldsize]
 
     assert numpy.all(numpy.isfinite(estimates))
     assert numpy.all(numpy.isfinite(weights))
+
+    if progress is not None:
+        progress.update(numpy.clip(100 - progress.n, 0, 100))
+        progress.close()
 
     return estimates, weights
 
