@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 from numpy.typing import ArrayLike, NDArray
 
 import click
 import numpy
+import resampy
 import soundfile
 
 from qdft import QDFT
@@ -15,6 +16,7 @@ from remucs.options import RemucsOptions
 def findpeaks(x: ArrayLike, n: int) -> NDArray:
 
     x = numpy.atleast_2d(x)
+
     assert len(x.shape) == 2
     assert x.shape[0] > 0
     assert x.shape[1] > 3
@@ -29,16 +31,37 @@ def findpeaks(x: ArrayLike, n: int) -> NDArray:
     return j + 1
 
 
+def resample(file: Path, samplerate: Union[int, None]) -> Tuple[NDArray, int]:
+
+    samples, origin = soundfile.read(file)
+    samples = numpy.atleast_1d(samples)
+
+    assert len(samples.shape) <= 2
+    assert samples.shape[0] > 0
+
+    if samples.ndim > 1:
+        samples = numpy.mean(samples, axis=-1)
+
+    if samplerate is None:
+        samplerate = origin
+
+    if samplerate != origin:
+        samples = resampy.resample(samples, origin, samplerate)
+
+    assert samplerate is not None
+    return samples, samplerate
+
+
 def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
 
     if not opts.quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
-    x, samplerate = soundfile.read(src)
-    x = numpy.atleast_2d(x).mean(axis=-1)
+    samplerate    = 8000
+    x, samplerate = resample(src, samplerate)
 
     reference  = 440
-    bandwidth  = (100, 3000)
+    bandwidth  = (100, 4000)
     resolution = int(1200 / 25)
     batchsize  = int(1 * samplerate)
     numpeaks   = 3
