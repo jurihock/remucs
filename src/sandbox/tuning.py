@@ -32,9 +32,9 @@ def main():
     cp2, weights = analyze(test, RemucsOptions())
 
     values = np.round(cp2).astype(int)
-    minmax = np.min(values), np.max(values)
-    bins   = np.arange(minmax[0], minmax[1] + 1)
-    edges  = np.arange(minmax[0], minmax[1] + 2) - 0.5
+    bounds = np.min(values), np.max(values)
+    bins   = np.arange(bounds[0], bounds[1] + 1)
+    edges  = np.arange(bounds[0], bounds[1] + 2) - 0.5
     hist   = np.histogram(values, bins=edges, weights=weights)
 
     assert hist[0].shape == bins.shape

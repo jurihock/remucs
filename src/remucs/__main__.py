@@ -40,6 +40,10 @@ VERSION = importlib.metadata.version('remucs')
                                default=','.join(["1"]*len(STEMS)),
                                show_default=True,
                                help=f'Gain of individual stems \"{",".join(sorted(STEMS))}\", e.g. \"2,1,0.5,0\".')
+@click.option('-a', '--a4',
+                               default=None,
+                               type=int,
+                               help='Target tuning reference frequency, to automatically estimate the pitch shifting factor (experimental).')
 @click.option('-p', '--pitch',
                                default='0',
                                show_default=True,
@@ -57,7 +61,7 @@ VERSION = importlib.metadata.version('remucs')
                                VERSION,
                                '-V', '--version',
                                message='%(version)s')
-def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
+def main(files, fine, norm, mono, bala, gain, a4, pitch, data, quiet):
 
     try:
 
@@ -72,6 +76,7 @@ def main(files, fine, norm, mono, bala, gain, pitch, data, quiet):
             mono=mono,
             bala=bala,
             gain=gain,
+            a4=a4,
             pitch=pitch)
 
         for file in list(set(files)):

@@ -61,7 +61,7 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     x, samplerate = resample(src, samplerate)
 
     reference  = 440
-    bandwidth  = (100, 4000)
+    bandwidth  = 100, 4000
     resolution = int(1200 / 25)
     batchsize  = int(1 * samplerate)
     numpeaks   = 3
@@ -117,3 +117,25 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     assert numpy.all(numpy.isfinite(weights))
 
     return estimates, weights
+
+
+def howto_shift_pitch(src: Path, opts: RemucsOptions) -> float:
+
+    estimates, weights = analyze(src, opts)
+
+    values = numpy.round(estimates).astype(int)
+    bounds = numpy.min(values), numpy.max(values)
+    bins   = numpy.arange(bounds[0], bounds[1] + 1)
+    edges  = numpy.arange(bounds[0], bounds[1] + 2) - 0.5
+    hist   = numpy.histogram(values, bins=edges, weights=weights)
+
+    assert hist[0].shape == bins.shape
+    assert hist[1].shape == edges.shape
+
+    a4 = bins[numpy.argmax(hist[0])]
+    q  = opts.a4 / a4
+
+    if not opts.quiet:
+        click.echo(f'Estimated pitch shifting factor {q} (from {a4} Hz to {opts.a4} Hz)')
+
+    return q

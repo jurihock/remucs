@@ -8,6 +8,7 @@ import click
 from remucs.options import RemucsOptions
 from remucs.analysis import analyze
 from remucs.synthesis import synthesize
+from remucs.tuning import howto_shift_pitch
 
 
 def remucs(file: Union[str, PathLike], data: Union[str, PathLike] = '~', opts: Union[RemucsOptions, None] = None):
@@ -36,4 +37,10 @@ def remucs(file: Union[str, PathLike], data: Union[str, PathLike] = '~', opts: U
     dst = file.with_suffix(opts.remucs + file.suffix)
 
     analyze(src, data, opts)
+
+    if opts.a4:
+
+        file       = data / opts.model / ('other' + src.suffix)
+        opts.pitch = howto_shift_pitch(file, opts)
+
     synthesize(dst, data, opts)

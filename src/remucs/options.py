@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Union
 
 
 @dataclass
@@ -14,6 +14,7 @@ class RemucsOptions:
     bala: List[float] = field(default_factory=lambda: [0]*4)
     gain: List[float] = field(default_factory=lambda: [1]*4)
 
+    a4:        Union[int, None] = None
     pitch:     float = 1
     quefrency: float = 1e-3
 
