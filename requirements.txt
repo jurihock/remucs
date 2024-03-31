@@ -7,6 +7,8 @@
 # install some additional packages
 click
 numpy
+qdft
+resampy
 soundfile
 stftpitchshift
 tqdm

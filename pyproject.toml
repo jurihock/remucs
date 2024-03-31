@@ -41,6 +41,8 @@ requires-python = ">=3.11"
 dependencies = [
   "click",
   "numpy",
+  "qdft",
+  "resampy",
   "soundfile",
   "stftpitchshift",
   "tqdm",
