@@ -30,7 +30,6 @@ def main():
     sr = soundfile.info(test).samplerate
 
     cp2, weights = analyze(test, RemucsOptions())
-
     weights /= np.max(np.abs(weights))
 
     values = np.round(cp2).astype(int)

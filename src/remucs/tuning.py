@@ -38,10 +38,6 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     x, sr = soundfile.read(src)
     x     = numpy.atleast_2d(x).mean(axis=-1)
 
-    oldsize = len(x)
-    newsize = int(numpy.ceil(oldsize / sr) * sr)
-    x.resize(newsize)
-
     scale      = Scale(440)
     bandwidth  = (scale.frequency('A0'), scale.frequency('C#8'))
     resolution = 12*4
@@ -49,15 +45,22 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     qdft = QDFT(samplerate=sr, bandwidth=bandwidth, resolution=resolution)
     fafe = QFAFE(qdft)
 
+    # use qdft.latencies in the next qdft release
+    latency = int(numpy.max(qdft.periods[0] - qdft.offsets))
+
+    oldsize = len(x)
+    newsize = int(numpy.ceil((latency + oldsize) / sr) * sr)
+
+    assert oldsize > latency
+    x.resize(newsize)
+
     batches   = numpy.arange(len(x)).reshape((-1, sr))
     estimates = numpy.full(len(x), 440, float)
     weights   = numpy.zeros(len(x), float)
 
     numpeaks = 3
     kernel   = 1  # int(100e-3 * sr)
-
-    # use qdft.latencies in the next qdft release
-    roi = [int(numpy.max(qdft.periods[0] - qdft.offsets)), oldsize - 1]
+    roi      = [latency, oldsize - 1]
 
     for batch in batches:
 
@@ -89,4 +92,7 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
             estimates[batch[n]] = estimate
             weights[batch[n]]   = numpy.prod(magns[n, m])
 
-    return estimates[:oldsize], weights[:oldsize]
+    estimates = estimates[latency:latency+oldsize]
+    weights   = weights[latency:latency+oldsize]
+
+    return estimates, weights
