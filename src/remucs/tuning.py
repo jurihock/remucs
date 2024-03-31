@@ -59,7 +59,6 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     weights   = numpy.zeros(len(x), float)
 
     numpeaks = 3
-    kernel   = 1  # int(100e-3 * sr)
     roi      = [latency, oldsize - 1]
 
     for batch in batches:
@@ -76,21 +75,20 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
             if (batch[n] < roi[0]) or (roi[1] < batch[n]):
                 continue
 
-            estimate = numpy.median(numpy.roll(estimates, batch[n] + kernel)[:kernel]) \
-                       if kernel > 1 else estimates[batch[n] - 1]
+            estimate0 = estimates[batch[n] - 1]
 
-            a = numpy.round(12 * numpy.log2(freqs[n, m] / estimate))
+            a = numpy.round(12 * numpy.log2(freqs[n, m] / estimate0))
             b = numpy.power(2, a / 12)
             c = numpy.power(2, a / 6)
 
-            estimate = numpy.sum(freqs[n, m] * b) / numpy.sum(c)
+            estimate1 = numpy.sum(freqs[n, m] * b) / numpy.sum(c)
 
-            if not numpy.isfinite(estimate):
-                estimates[batch[n]] = estimates[batch[n] - 1]
-                continue
-
-            estimates[batch[n]] = estimate
-            weights[batch[n]]   = numpy.prod(magns[n, m])
+            if numpy.isfinite(estimate1):
+                estimates[batch[n]] = estimate1
+                weights[batch[n]]   = numpy.prod(magns[n, m])
+            else:
+                estimates[batch[n]] = estimate0
+                weights[batch[n]]   = 0
 
     estimates = estimates[latency:latency+oldsize]
     weights   = weights[latency:latency+oldsize]
