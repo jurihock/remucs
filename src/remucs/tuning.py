@@ -132,10 +132,11 @@ def howto_shift_pitch(src: Path, opts: RemucsOptions) -> float:
     assert hist[0].shape == bins.shape
     assert hist[1].shape == edges.shape
 
-    a4 = bins[numpy.argmax(hist[0])]
-    q  = opts.a4 / a4
+    a4     = bins[numpy.argmax(hist[0])]
+    factor = opts.a4 / a4
+    cents  = round(1200 * numpy.log2(factor))
 
     if not opts.quiet:
-        click.echo(f'Estimated pitch shifting factor {q} (from {a4} Hz to {opts.a4} Hz)')
+        click.echo(f'Estimated pitch shifting factor \"-p 0{cents:+d}\" cents (from {a4} Hz to {opts.a4} Hz)')
 
-    return q
+    return factor
