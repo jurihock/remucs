@@ -113,4 +113,7 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     estimates = estimates[latency:latency+oldsize]
     weights   = weights[latency:latency+oldsize]
 
+    assert numpy.all(numpy.isfinite(estimates))
+    assert numpy.all(numpy.isfinite(weights))
+
     return estimates, weights
