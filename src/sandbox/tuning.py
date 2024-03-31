@@ -1,6 +1,6 @@
 # pylint: disable=import-error
 
-import pathlib
+from pathlib import Path
 
 import matplotlib.pyplot as plot
 import numpy as np
@@ -25,7 +25,7 @@ def smooth_savgol(x, seconds, samplerate):
 def main():
 
     cp0 = 440
-    test = pathlib.Path(f'test.{cp0}.wav')
+    test = Path(f'test.{cp0}.wav')
     synth(test, a4=cp0, tenuto=1)
     sr = soundfile.info(test).samplerate
 
@@ -41,14 +41,15 @@ def main():
     assert hist[1].shape == edges.shape
 
     cp1 = bins[np.argmax(hist[0])]
-    weights /= np.max(hist[0])
-
     cp3 = smooth_savgol(cp2, 100e-3, sr)
 
-    print(f'cp orig {cp0} est {cp1}')
+    histweights = weights / np.max(hist[0])
+    plotweights = weights * np.ptp(cp2) / np.max(weights) + np.min(cp2)
+
+    print(f'a4 orig {cp0} est {cp1}')
 
     plot.figure(f'{test} hist')
-    plot.hist(values, bins=edges, weights=weights)
+    plot.hist(values, bins=edges, weights=histweights)
     plot.axvline(cp0, label='cp0', linestyle='-', color='c')
     plot.axvline(cp1, label='cp1', linestyle='--', color='m')
     plot.legend()
@@ -56,7 +57,8 @@ def main():
 
     plot.figure(f'{test} plot')
     plot.plot(cp2)
-    plot.plot(cp3, linestyle='--')
+    plot.plot(cp3, linestyle='-')
+    plot.plot(plotweights, linestyle=':')
     plot.axhline(cp0, label='cp0', linestyle='-', color='c')
     plot.axhline(cp1, label='cp1', linestyle='--', color='m')
     plot.legend()
