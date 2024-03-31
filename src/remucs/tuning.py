@@ -34,27 +34,28 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
     if not opts.quiet:
         click.echo(f'Analyzing {src.resolve()}')
 
-    x, sr = soundfile.read(src)
-    x     = numpy.atleast_2d(x).mean(axis=-1)
+    x, samplerate = soundfile.read(src)
+    x = numpy.atleast_2d(x).mean(axis=-1)
 
     reference  = 440
     bandwidth  = (100, 3000)
-    resolution = 1200 // 25
+    resolution = int(1200 / 25)
+    batchsize  = int(1 * samplerate)
     numpeaks   = 3
 
-    qdft = QDFT(samplerate=sr, bandwidth=bandwidth, resolution=resolution)
+    qdft = QDFT(samplerate=samplerate, bandwidth=bandwidth, resolution=resolution)
     fafe = QFAFE(qdft)
 
     # use qdft.latencies in the next qdft release
     latency = int(numpy.max(qdft.periods[0] - qdft.offsets))
 
     oldsize = len(x)
-    newsize = int(numpy.ceil((latency + oldsize) / sr) * sr)
+    newsize = int(numpy.ceil((latency + oldsize) / batchsize) * batchsize)
 
     if oldsize < latency:
 
-        s0 = int(numpy.round(oldsize/sr))
-        s1 = int(numpy.ceil(latency/sr))
+        s0 = int(numpy.round(oldsize / samplerate))
+        s1 = int(numpy.ceil(latency / samplerate))
 
         raise ValueError(
             f'The audio file \"{src}\" length of {s0} seconds is too short, ' +
@@ -63,7 +64,7 @@ def analyze(src: Path, opts: RemucsOptions) -> Tuple[NDArray, NDArray]:
 
     x.resize(newsize)
 
-    batches   = numpy.arange(len(x)).reshape((-1, sr))
+    batches   = numpy.arange(len(x)).reshape((-1, batchsize))
     estimates = numpy.zeros(len(x), float)
     weights   = numpy.zeros(len(x), float)
 
