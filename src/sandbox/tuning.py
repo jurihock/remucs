@@ -30,16 +30,18 @@ def main():
     sr = soundfile.info(test).samplerate
 
     cp2, weights = analyze(test, RemucsOptions())
-    weights /= np.max(np.abs(weights))
 
     values = np.round(cp2).astype(int)
     minmax = np.min(values), np.max(values)
     bins   = np.arange(minmax[0], minmax[1] + 1)
     edges  = np.arange(minmax[0], minmax[1] + 2) - 0.5
     hist   = np.histogram(values, bins=edges, weights=weights)
-    cp1    = bins[np.argmax(hist[0])]
+
     assert hist[0].shape == bins.shape
     assert hist[1].shape == edges.shape
+
+    cp1 = bins[np.argmax(hist[0])]
+    weights /= np.max(hist[0])
 
     cp3 = smooth_savgol(cp2, 100e-3, sr)
 
